@@ -9,12 +9,12 @@
 /**
  * Implement hook_enable().
  */
-function profile_enable() {
-  if (!profile_get_types('main')) {
+function profile2_enable() {
+  if (!profile2_get_types('main')) {
     // Refresh schema cache, needed to let type save work during installation.
     drupal_get_schema('profile_type', TRUE);
     
-    profile_type_save(array(
+    profile2_type_save(array(
       'name' => 'main',
       'label' => t('Profile'),
       'weight' => 0,
@@ -30,6 +30,7 @@ function profile_enable() {
     field_create_field($field);
   
     $instance = array(
+      'object_type' => 'profile',
       'field_name' => 'profile_fullname',
       'bundle' => 'main',
       'label' => 'Full name',
@@ -46,14 +47,14 @@ function profile_enable() {
 /**
  * Implement hook_uninstall().
  */
-function profile_uninstall() {
+function profile2_uninstall() {
   variable_del('profile_register');
 }
 
 /**
  * Implement hook_schema().
  */
-function profile_schema() {
+function profile2_schema() {
   $schema['profile'] = array(
     'description' => 'Stores profile items.',
     'fields' => array(
@@ -129,13 +130,3 @@ function profile_schema() {
   );
   return $schema;
 }
-
-/**
- * Rename {profile_fields} table to {profile_field} and {profile_values} to {profile_value}.
- */
-function profile_update_7001() {
-  db_rename_table('profile_fields', 'profile_field');
-  db_rename_table('profile_values', 'profile_value');
-}
-
-//TODO: Update procedure.
