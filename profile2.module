@@ -185,6 +185,13 @@ function profile2_user_cancel(&$edit, $account, $method) {
 }
 
 /**
+ * Create a new profile object.
+ */
+function profile_create(array $values) {
+  return (object)$values;
+}
+
+/**
  * Saves a profile to the database.
  *
  * @param $profile
@@ -316,7 +323,7 @@ function profile2_form_user_register_form_alter(&$form, &$form_state) {
   $name = variable_get('profile2_register', 'main');
   if ($name && ($type = profile2_get_types($name))) {
     if (empty($form_state['profile'])) {
-      $form['#profile'] = (object)array('name' => $name);
+      $form['#profile'] = profile_create(array('name' => $name));
     }
     profile2_attach_form($form, $form_state);
   }
