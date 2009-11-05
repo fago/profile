@@ -186,6 +186,13 @@ function profile2_user_cancel(&$edit, $account, $method) {
 }
 
 /**
+ * Create a new profile object.
+ */
+function profile_create(array $values) {
+  return (object)$values;
+}
+
+/**
  * Saves a profile to the database.
  *
  * @param $profile
