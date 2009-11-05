@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+# $Id$
 
 # quick utility for switching all filenames and function names therein from 'profile' to 'profile2'.
 
