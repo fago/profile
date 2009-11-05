@@ -99,7 +99,7 @@ class EntityCRUDController extends DrupalDefaultEntityController implements Enti
   
   public function delete($ids) {
     $entities = $this->load($ids);
-  
+
     db_delete($this->entityInfo['base table'])
       ->condition($this->idKey, $ids, 'IN')
       ->execute();

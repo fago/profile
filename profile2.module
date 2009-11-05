@@ -174,19 +174,7 @@ function profile2_delete($profile) {
  *   An array of profile IDs.
  */
 function profile2_delete_multiple(array $pids) {
-  $profiles = profile2_load_multiple($pids);
-
-  db_delete('profile')
-    ->condition('pid', $pids, 'IN')
-    ->execute();
-
-  foreach ($profiles as $profile) {
-    field_attach_delete('profile', $profile);
-    module_invoke_all('profile_delete', $profile);
-  }
-  // Clear caches.
-  entity_get_controller('profile')->resetCache();
-  drupal_static_reset('profile2_load_by_user');
+  entity_get_controller('profile')->delete($pids);
 }
 
 /**
