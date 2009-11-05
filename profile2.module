@@ -165,12 +165,33 @@ function profile2_load_by_user($account, $name = NULL) {
 function profile2_delete($profile) {
   db_delete('profile')->condition('pid', $profile->pid)->execute();
   // Invoke hook.
-  module_invoke_all('profile2_delete', $profile);
   field_attach_delete('profile', $profile);
-
+  module_invoke_all('profile_delete', $profile);
+  
   // Clear caches.
-  cache_clear_all();
-  profile2_load_multiple(FALSE, array(), TRUE);
+  entity_get_controller('profile')->resetCache();
+  drupal_static_reset('profile2_load_by_user');
+}
+
+/**
+ * Delete multiple profiles.
+ *
+ * @param $pids
+ *   An array of profile IDs.
+ */
+function profile2_delete_multiple(array $pids) {
+  $profiles = profile2_load_multiple($pids);
+
+  db_delete('profile')
+    ->condition('pid', $pids, 'IN')
+    ->execute();
+
+  foreach ($profiles as $profile) {
+    field_attach_delete('profile', $profile);
+    module_invoke_all('profile_delete', $profile);
+  }
+  // Clear caches.
+  entity_get_controller('profile')->resetCache();
   drupal_static_reset('profile2_load_by_user');
 }
 
@@ -245,14 +266,8 @@ function profile2_type_save(array $type) {
  */
 function profile2_type_delete(array $type) {
   // Delete profiles.
-  $pids = db_select('profile', 'p')
-    ->fields('p', array('pid'))
-    ->condition('name', $type['name'])
-    ->execute()
-    ->fetchCol();
-  foreach ($pids as $pid) {
-    profile2_delete(profile2_load($pid));
-  }
+  $pids = array_keys(profile2_load_multiple(FALSE, array('name' => $type['name'])));
+  profile2_delete_multiple($pids);
   db_delete('profile_type')->condition('name', $type['name'])->execute();
   // Invoke hook.
   module_invoke_all('profile_type_delete', $type);
