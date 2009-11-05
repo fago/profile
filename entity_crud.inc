@@ -195,7 +195,7 @@ class EntityDB extends FacesExtendable implements EntityCRUDInterface {
 
   protected $entityType;
   protected $entityInfo;
-  
+  protected $idKey;
 
   public function __construct(array $values = array(), $entityType = NULL) {
     if (empty($entityType)) {
@@ -203,6 +203,7 @@ class EntityDB extends FacesExtendable implements EntityCRUDInterface {
     }
     $this->entityType = $entityType;
     $this->entityInfo = entity_get_info($entityType);
+    $this->idKey = $this->entityInfo['object keys']['id'];
     // Set initial values.
     foreach ($values as $key => $value) {
       $this->$key = $value;
@@ -210,8 +211,7 @@ class EntityDB extends FacesExtendable implements EntityCRUDInterface {
   }
   
   public function identifier() {
-    list($id, , ,) = entity_extract_ids($this->entityType, $this);
-    return $id;
+    return isset($this->{$this->idKey}) ? $this->{$this->idKey} : NULL;
   }
 
   public function entityInfo() {
@@ -224,25 +224,27 @@ class EntityDB extends FacesExtendable implements EntityCRUDInterface {
 
   public function save() {
     $this->invoke('presave');
-    $info = $this->entityInfo();
 
-    if ($this->identifier() !== NULL) {
-      $return = drupal_write_record($info['base table'], $this, $info['object keys']['id']);
+    if (isset($this->{$this->idKey})) {
+      $return = drupal_write_record($this->entityInfo['base table'], $this, $this->idKey);
       $this->invoke('update');
     }
     else {
-      $return = drupal_write_record($info['base table'], $this);
+      $return = drupal_write_record($this->entityInfo['base table'], $this);
       $this->invoke('insert');
     }
     return $return;
   }
 
   public function delete() {
-    db_delete($this->entityInfo['base table'])
-      ->condition($this->idKey, $id)
-      ->execute();
-    $this->invoke('delete');
-    entity_get_controller($this->entityType)->resetCache();
+    $id = $this->identifier();
+    if (isset($id)) {
+      db_delete($this->entityInfo['base table'])
+        ->condition($this->idKey, $id)
+        ->execute();
+      $this->invoke('delete');
+      entity_get_controller($this->entityType)->resetCache();
+    }
   }
 
   /**
@@ -257,13 +259,3 @@ class EntityDB extends FacesExtendable implements EntityCRUDInterface {
   }
 
 }
-
-
-class Profile extends EntityDB {
-  
-  public function __construct(array $values = array(), $entityType = NULL) {
-    parent::__construct($values, 'profile');
-  }
-  
-}
-
