@@ -289,7 +289,7 @@ function profile2_form_user_profile_form_alter(&$form, &$form_state) {
     if (empty($form_state['profile'])) {
       $form['#profile'] = profile2_load_by_user($form['#user'], $form['#user_category']);
       if (!$form['#profile']) {
-        $form['#profile'] = (object)array('name' => $form['#user_category'], 'uid' => $form['#user']->uid);
+        $form['#profile'] = profile_create(array('name' => $form['#user_category'], 'uid' => $form['#user']->uid));
       }
     }
     profile2_attach_form($form, $form_state);
