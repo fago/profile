@@ -129,6 +129,15 @@ function entity_delete($entity_type, array $ids) {
  */
 interface EntityCRUDInterface {
   
+  /**
+   * Construct an instance.
+   *
+   * @param $values
+   *   An array of values to be assigned to the object properties.
+   * @param $entityType
+   *   The entity type of the instance. This parameter can be used to create
+   *   generic entity classes, but can be ommitted for specific classes.
+   */
   public function __construct(array $values = array(), $entityType = NULL);
   
 
@@ -172,6 +181,12 @@ interface EntityCRUDInterface {
    *   entity_get_info()
    */
   public function entityInfo();
+  
+  /**
+   * Invokes a hook on behalf the entity. For hooks that have a respective
+   * field API attacher like insert/update/.. the attacher is called too.
+   */
+  public function invoke($hook);
 
 }
 
@@ -233,7 +248,7 @@ class EntityDB extends FacesExtendable implements EntityCRUDInterface {
   /**
    * Invokes a hook and calls any field API attachers.
    */
-  protected function invoke($hook) {
+  public function invoke($hook) {
     $info = $this->entityInfo();
     if (!empty($info['fieldable']) && function_exists($function = 'field_attach_' . $hook)) {
       $function($this->entityType, $this);
