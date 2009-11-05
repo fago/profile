@@ -13,7 +13,8 @@ function profile2_entity_info() {
   $return = array(
     'profile' => array(
       'label' => t('Profile'),
-      'controller class' => 'DrupalDefaultEntityController',
+      'entity class' => 'Profile',
+      'controller class' => 'EntityCRUDController',
       'base table' => 'profile',
       'fieldable' => TRUE,
       'object keys' => array(
