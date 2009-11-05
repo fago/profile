@@ -164,15 +164,7 @@ function profile2_load_by_user($account, $name = NULL) {
  * Deletes a profile
  */
 function profile2_delete($profile) {
-  db_delete('profile')->condition('pid', $profile->pid)->execute();
-  // Invoke hook.
-  module_invoke_all('profile2_delete', $profile);
-  field_attach_delete('profile', $profile);
-
-  // Clear caches.
-  cache_clear_all();
-  profile2_load_multiple(FALSE, array(), TRUE);
-  drupal_static_reset('profile2_load_by_user');
+  $profile->delete();
 }
 
 /**
@@ -189,7 +181,7 @@ function profile2_user_cancel(&$edit, $account, $method) {
  * Create a new profile object.
  */
 function profile_create(array $values) {
-  return (object)$values;
+  return new Profile($values);
 }
 
 /**
@@ -199,20 +191,7 @@ function profile_create(array $values) {
  *   The profile object.
  */
 function profile2_save($profile) {
-  field_attach_presave('profile', $profile);
-  module_invoke_all('profile2_presave', $profile);
-
-  if (!empty($profile->pid)) {
-    $return = drupal_write_record('profile', $profile, 'pid');
-    field_attach_update('profile', $profile);
-    module_invoke_all('profile2_update', $profile);
-  }
-  else {
-    $return = drupal_write_record('profile', $profile);
-    field_attach_insert('profile', $profile);
-    module_invoke_all('profile2_insert', $profile);
-  }
-  return $return;
+  return $profile->save();
 }
 
 /**
@@ -410,3 +389,16 @@ function profile2_category_access($account, $profile_name) {
     return $GLOBALS['user']->uid == $account->uid;
   }
 }
+
+
+/**
+ * Main class for profile entities.
+ */
+class Profile extends EntityDB {
+  
+  public function __construct(array $values = array(), $entityType = NULL) {
+    parent::__construct($values, 'profile');
+  }
+  
+}
+
