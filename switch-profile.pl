@@ -1,7 +1,7 @@
-#!/usr/bin/perl
 # $Id$
 
 # quick utility for switching all filenames and function names therein from 'profile' to 'profile2'.
+# note no shebang line so this can't be executed by a server: invoke this with perl itself.
 
 use warnings;
 $\ = "\n";
