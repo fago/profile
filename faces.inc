@@ -257,11 +257,10 @@ if (!class_exists('FacesExtendableInterface', FALSE)) {
      * Only serialize what is really necessary.
      */
     public function __sleep() {
-      return array('facesMethods', 'faces');
+      $properties = get_object_vars($this);
+      unset($properties['facesClassInstances']);
+      return array_keys($properties);
     }
-    
-    
-
     
   }
   
