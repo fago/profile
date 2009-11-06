@@ -6,5 +6,3 @@ core = 7.x
 files[] = profile2.module
 files[] = profile2.install
 files[] = profile2.test
-files[] = faces.inc
-files[] = entity_crud.inc
