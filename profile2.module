@@ -27,7 +27,9 @@ function profile2_entity_info() {
     $return['profile']['bundles'][$name] = array(
       'label' => $info['label'],
       'admin' => array(
-        'path' => 'admin/structure/profiles/' . str_replace('_', '-', $name),
+        'path' => 'admin/structure/profiles/manage/%profile_type',
+        'real path' => 'admin/structure/profiles/manage/' . str_replace('_', '-', $name),
+        'bundle argument' => 4,
         'access arguments' => array('administer profiles'),
       ),
     );
@@ -39,6 +41,7 @@ function profile2_entity_info() {
  * Implement hook_menu().
  */
 function profile2_menu() {
+  // Profile types admin UI
   $items['admin/structure/profiles'] = array(
     'title' => 'Profile types',
     'description' => 'Manage profiles by type, including fields, permissions, visibility.',
@@ -59,6 +62,31 @@ function profile2_menu() {
     'type' => MENU_LOCAL_ACTION,
     'file' => 'profile_types.inc',
   );
+  // Individual profile types admin UI
+  $items['admin/structure/profiles/manage/%profile_type'] = array(
+    'title' => 'Edit profile type',
+    // @todo
+    //'title callback' => 'profile_type_page_title',
+    //'title arguments' => array(4),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('profile_type_form', 4),
+    'access arguments' => array('administer profiles'),
+    'file' => 'profile_types.inc',
+  );
+  $items['admin/structure/profiles/manage/%profile_type/edit'] = array(
+    'title' => 'Edit',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  /*
+  // todo
+  $items['admin/structure/profiles/manage/%profile_type/delete'] = array(
+    'title' => 'Delete',
+    'page arguments' => array('node_type_delete_confirm', 4),
+    'access arguments' => array('administer content types'),
+    'type' => MENU_CALLBACK,
+    'file' => 'content_types.inc',
+  );  
+  */
   
   return $items;  
 }
@@ -102,6 +130,20 @@ function profile2_get_types($name = NULL) {
     return isset($types[$name]) ? $types[$name] : FALSE;
   }
   return $types;
+}
+
+/**
+ * Menu argument loader; Load a profile type by string.
+ *
+ * @param $name
+ *   The machine-readable name of a profile type to load; having '_' replaced with
+ *   '-'.
+ *
+ * @return
+ *   A profile type array or FALSE if $name does not exist.
+ */
+function profile_type_load($name) {
+  return profile2_get_types(strtr($name, array('-' => '_')));
 }
 
 /**
