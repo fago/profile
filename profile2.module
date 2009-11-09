@@ -36,6 +36,13 @@ function profile2_entity_info() {
 }
 
 /**
+ * Implement hook_menu().
+ */
+function profile2_menu() {
+  //TODO: Add page to manage profile types at admin/structure/profiles.
+}
+
+/**
  * Implement hook_permission().
  */
 function profile2_permission() {
@@ -74,13 +81,6 @@ function profile2_get_types($name = NULL) {
     return isset($types[$name]) ? $types[$name] : FALSE;
   }
   return $types;
-}
-
-/**
- * Implement hook_menu().
- */
-function profile2_menu() {
-  //TODO: Add page to manage profile types at admin/structure/profiles.
 }
 
 /**
