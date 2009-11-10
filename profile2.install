@@ -14,7 +14,7 @@ function profile2_enable() {
     // Refresh schema cache, needed to let type save work during installation.
     drupal_get_schema('profile_type', TRUE);
     
-    profile2_type_save(array(
+    profile2_type_save((object)array(
       'name' => 'main',
       'label' => t('Profile'),
       'weight' => 0,
