@@ -21,11 +21,14 @@ function profile2_entity_info() {
         'bundle' => 'name',
       ),
       'bundles' => array(),
+      'bundle keys' => array(
+        'bundle' => 'name',
+      ),
     ),
   );
   foreach (profile2_get_types() as $name => $info) {
     $return['profile']['bundles'][$name] = array(
-      'label' => $info['label'],
+      'label' => $info->label,
       'admin' => array(
         'path' => 'admin/structure/profiles/manage/%profile_type',
         'real path' => 'admin/structure/profiles/manage/' . str_replace('_', '-', $name),
@@ -47,7 +50,7 @@ function profile2_menu() {
     'description' => 'Manage profiles by type, including fields, permissions, visibility.',
     'page callback' => 'profile2_overview_types',
     'access arguments' => array('administer profiles'),
-    'file' => 'profile_types.inc',
+    'file' => 'profile2.admin.inc',
   );
   $items['admin/structure/profiles/list'] = array(
     'title' => 'List',
@@ -57,38 +60,56 @@ function profile2_menu() {
   $items['admin/structure/profiles/add'] = array(
     'title' => 'Add profile type',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('profile_type_form'),
+    'page arguments' => array('profile2_type_form'),
     'access arguments' => array('administer profiles'),
     'type' => MENU_LOCAL_ACTION,
-    'file' => 'profile_types.inc',
+    'file' => 'profile2.admin.inc',
   );
   // Individual profile types admin UI
   $items['admin/structure/profiles/manage/%profile_type'] = array(
     'title' => 'Edit profile type',
-    // @todo
-    //'title callback' => 'profile_type_page_title',
-    //'title arguments' => array(4),
+    'title callback' => 'profile2_type_page_title',
+    'title arguments' => array(4),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('profile_type_form', 4),
+    'page arguments' => array('profile2_type_form', 4),
     'access arguments' => array('administer profiles'),
-    'file' => 'profile_types.inc',
+    'file' => 'profile2.admin.inc',
   );
   $items['admin/structure/profiles/manage/%profile_type/edit'] = array(
     'title' => 'Edit',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   /*
-  // todo
+  //TODO
   $items['admin/structure/profiles/manage/%profile_type/delete'] = array(
     'title' => 'Delete',
     'page arguments' => array('node_type_delete_confirm', 4),
     'access arguments' => array('administer content types'),
     'type' => MENU_CALLBACK,
     'file' => 'content_types.inc',
-  );  
+  );
   */
-  
-  return $items;  
+  return $items;
+}
+
+/**
+ * Menu argument loader; Load a profile type by string.
+ *
+ * @param $name
+ *   The machine-readable name of a profile type to load;
+ *   having '_' replaced with '-'.
+ * @return
+ *   A profile type array or FALSE if $name does not exist.
+ */
+function profile_type_load($name) {
+  return profile2_get_types(strtr($name, array('-' => '_')));
+}
+
+/**
+ * Menu title callback.
+ */
+function profile2_type_page_title($type) {
+  return $type->name;
 }
 
 /**
@@ -116,34 +137,20 @@ function profile2_get_types($name = NULL) {
       ->fields('pt')
       ->orderBy('name')
       ->execute()
-      ->fetchAllAssoc('name', PDO::FETCH_ASSOC);
+      ->fetchAllAssoc('name');
     foreach ($types as &$type) {
-      $data = unserialize($type['data']);
-      unset($type['data']);
-      $type += (array)$data + array(
-        'user category' => TRUE,
-        'user view' => TRUE,
-      );
+      $data = unserialize($type->data);
+      unset($type->data);
+      $type = (object)((array)$type + (array)$data + array(
+        'user_category' => TRUE,
+        'user_view' => TRUE,
+      ));
     }
   }
   if (isset($name)) {
     return isset($types[$name]) ? $types[$name] : FALSE;
   }
   return $types;
-}
-
-/**
- * Menu argument loader; Load a profile type by string.
- *
- * @param $name
- *   The machine-readable name of a profile type to load; having '_' replaced with
- *   '-'.
- *
- * @return
- *   A profile type array or FALSE if $name does not exist.
- */
-function profile_type_load($name) {
-  return profile2_get_types(strtr($name, array('-' => '_')));
 }
 
 /**
@@ -304,21 +311,21 @@ function profile2_save($profile) {
  * @param $type
  *   An array of information about the type.
  */
-function profile2_type_save(array $type) {
+function profile2_type_save($type) {
   $types = profile2_get_types();
   // Save all additional properties to the 'data' field.
-  $data = $type;
+  $data = (array)$type;
   unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['data']);
-  $type['data'] = $data;
+  $type->data = $data;
 
-  if (isset($types[$type['name']])) {
+  if (isset($types[$type->name])) {
     // We don't support renaming types.
     drupal_write_record('profile_type', $type, 'name');
     module_invoke_all('profile_type_update', $type);
   }
   else {
     drupal_write_record('profile_type', $type);
-    field_attach_create_bundle('profile', $type['name']);
+    field_attach_create_bundle('profile',$type->name);
     module_invoke_all('profile_type_insert', $type);
   }
   drupal_static_reset('profile2_get_types');
@@ -327,14 +334,14 @@ function profile2_type_save(array $type) {
 /**
  * Deletes a profile type from.
  */
-function profile2_type_delete(array $type) {
+function profile2_type_delete($type) {
   // Delete profiles.
-  $pids = array_keys(profile2_load_multiple(FALSE, array('name' => $type['name'])));
+  $pids = array_keys(profile2_load_multiple(FALSE, array('name' => $type->name)));
   profile2_delete_multiple($pids);
-  db_delete('profile_type')->condition('name', $type['name'])->execute();
+  db_delete('profile_type')->condition('name', $type->name)->execute();
   // Invoke hook.
   module_invoke_all('profile_type_delete', $type);
-  field_attach_delete_bundle('profile', $type['name']);
+  field_attach_delete_bundle('profile', $type->name);
 }
 
 /**
@@ -345,7 +352,7 @@ function profile2_profile_load($profiles) {
   // Load the profile's label.
   foreach ($profiles as $profile) {
     if (isset($types[$profile->name])) {
-      $profile->label = $types[$profile->name]['label'];
+      $profile->label = $types[$profile->name]->label;
     }
   }
 }
@@ -355,7 +362,7 @@ function profile2_profile_load($profiles) {
  */
 function profile2_user_view($account) {
   foreach (profile2_get_types() as $name => $profile_type) {
-    if ($profile_type['user view'] && ($profile = profile2_load_by_user($account, $name))) {
+    if ($profile_type->user_view && ($profile = profile2_load_by_user($account, $name))) {
       $account->content['profile_' . $name] = array(
         '#type' => 'user_profile_category',
         '#title' => $profile->label,
@@ -383,7 +390,7 @@ function profile2_field_build_modes($obj_type) {
  * @see profile2_form_submit_handler
  */
 function profile2_form_user_profile_form_alter(&$form, &$form_state) {
-  if (($type = profile2_get_types($form['#user_category'])) && $type['user category']) {
+  if (($type = profile2_get_types($form['#user_category'])) && $type->user_category) {
     if (empty($form_state['profile'])) {
       $form['#profile'] = profile2_load_by_user($form['#user'], $form['#user_category']);
       if (!$form['#profile']) {
@@ -462,14 +469,16 @@ function profile2_form_submit_handler(&$form, &$form_state) {
 function profile2_user_categories() {
   $data = array();
   foreach (profile2_get_types() as $name => $type) {
-    $data[] = array(
-      'name' => $name,
-      'title' => $type['label'],
-      // Add an offset so a weight of 0 appears right of the account category.
-      'weight' => $type['weight'] + 3,
-      'access callback' => 'profile2_category_access',
-      'access arguments' => array(1, $name)
-    );
+    if ($type->user_category) {
+      $data[] = array(
+        'name' => $name,
+        'title' => $type->label,
+        // Add an offset so a weight of 0 appears right of the account category.
+        'weight' => $type->weight + 3,
+        'access callback' => 'profile2_category_access',
+        'access arguments' => array(1, $name)
+      );
+    }
   }
   return $data;
 }
@@ -493,7 +502,7 @@ function profile2_category_access($account, $profile_name) {
  */
 function profile2_theme() {
   return array(
-    'profile_admin_overview' => array(
+    'profile2_admin_type' => array(
       'variables' => array('label' => NULL, 'type' => NULL),
     ),
   );
