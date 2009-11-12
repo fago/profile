@@ -18,6 +18,7 @@ function profile2_enable() {
       'name' => 'main',
       'label' => t('Profile'),
       'weight' => 0,
+      'multiple' => FALSE,
       'locked' => TRUE,
     ));
     // Auto-create a field for the full name.
@@ -113,6 +114,13 @@ function profile2_schema() {
       ),
       'locked' => array(
         'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'multiple' => array(
+        'description' => 'A boolean indicating whether one profile set may content more than one profile item of this type.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,

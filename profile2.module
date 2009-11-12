@@ -315,7 +315,7 @@ function profile2_type_save($type) {
   $types = profile2_get_types();
   // Save all additional properties to the 'data' field.
   $data = (array)$type;
-  unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['data']);
+  unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['multiple'], $data['data']);
   $type->data = $data;
 
   if (isset($types[$type->name])) {
