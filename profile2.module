@@ -309,7 +309,7 @@ function profile2_save($profile) {
  * Saves a profile type to the db.
  *
  * @param $type
- *   An array of information about the type.
+ *   A profile type object.
  */
 function profile2_type_save($type) {
   $types = profile2_get_types();
