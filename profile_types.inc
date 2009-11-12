@@ -62,13 +62,14 @@ function theme_profile_admin_overview($variables) {
 /**
  * Generates the profile type editing form.
  */
-function profile_type_form($form, &$form_state, $type = NULL) {
+function profile_type_form($form, &$form_state, $type = NULL) {  
+  // @todo: set defaults for new type.
   if (!isset($type->name)) {
-    // @todo!
     // This is a new type. Node module managed types are custom and unlocked.
     //$type = node_type_set_defaults(array('custom' => 1, 'locked' => 0));
   }
   
+  // @todo: create form
   $form['identity'] = array(
     '#type' => 'fieldset',
     '#title' => t('Identification'),
