@@ -19,83 +19,34 @@ function profile2_overview_types($form) {
   foreach($types as $id => $type) {
     $type_url_str = str_replace('_', '-', $id);    
     $form[$id]['#profile_type'] = $type;
-    $form[$id]['label'] = array('#markup' => check_plain($type->label));
+    $form[$id]['identification'] = array('#theme' => 'profile2_admin_type');
+    $form[$id]['identification']['label'] = array('#markup' => check_plain($type->label));
+    $form[$id]['identification']['name'] = array('#markup' => check_plain($id));
     $form[$id]['weight'] = array('#type' => 'weight', '#delta' => 10, '#default_value' => $type->weight);
     $form[$id]['edit'] = array('#type' => 'link', '#title' => t('edit'), '#href' => 'admin/structure/profiles/manage/' . $type_url_str);
     if ($field_ui) {
       // Manage fields.
       $form[$id]['manage_fields'] = array('#type' => 'link', '#title' => t('manage fields'), '#href' => "admin/structure/profiles/manage/$type_url_str/fields");
-      // array('data' => l(t('manage fields'), 'admin/structure/profiles/manage/' . $type_url_str . '/fields'));
       // Display fields.
       $form[$id]['manage_display'] = array('#type' => 'link', '#title' => t('display fields'), '#href' => "admin/structure/profiles/manage/$type_url_str/display");
-      //$row[] = array('data' => l(t('manage display'), 'admin/structure/profiles/manage/' . $type_url_str . '/display'));
     }
     // Delete type.
     if (!$type->locked) {
       $form[$id]['delete'] = array('#type' => 'link', '#title' => t('delete'), '#href' => "admin/structure/profiles/manage/$type_url_str/delete");
-      //$row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
     }
     
   }
 
   // Only make this form include a submit button and weight if more than one
-  // vocabulary exists.
+  // profile type exists.
   if (count($types) > 1) {
     $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
   }
   elseif (isset($type)) {
     unset($form[$id]['weight']);
   }
-  dsm($form);
-  //$form['foo'] = array('#markup' => 'foo');
   
   return $form;
-  
-  ///////// Old code for reference while I work
-  
-  
-  
-  $types = profile2_get_types();
-  $field_ui = module_exists('field_ui');  
-
-  $header = array(t('Name'), array('data' => t('Operations'), 'colspan' => $field_ui ? '4' : '2'));
-  $rows = array();
-  
-  foreach($types as $id => $type) {
-    $type_url_str = str_replace('_', '-', $id);
-
-    // Label and machine name.
-    $row[] = array('data' => theme('profile2_admin_type', array('label' => $type->label, 'type' => $type)));
-    // Edit type.
-    $row[] = array('data' => l(t('edit'), 'admin/structure/profiles/manage/' . $type_url_str));
-    if ($field_ui) {
-      // Manage fields.
-      $row[] = array('data' => l(t('manage fields'), 'admin/structure/profiles/manage/' . $type_url_str . '/fields'));
-
-      // Display fields.
-      $row[] = array('data' => l(t('manage display'), 'admin/structure/profiles/manage/' . $type_url_str . '/display'));
-    }
-    // Delete type.
-    if (!$type->locked) {
-      $row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
-    }
-    else {
-      $row[] = array('data' => '');
-    }
-    
-    $rows[] = $row;
-  }
-
-  if (empty($rows)) {
-    $rows[] = array(array('data' => t('No profile types available. <a href="@link">Add profile type</a>.', array('@link' => url('admin/structure/profiles/add'))), 'colspan' => '5', 'class' => array('message')));
-  }
-
-  $build['profile_table'] = array(
-    '#theme' => 'table',
-    '#header' => $header,
-    '#rows' => $rows
-  );
-  return $build;
 }
 
 /**
@@ -110,9 +61,6 @@ function theme_profile2_overview_types($variables) {
 
   $rows = array();
   
-  //dsm('theme_profile2_overview_types');
-  //dsm($form);
-
   foreach (element_children($form) as $key) {
     if (isset($form[$key]['#profile_type'])) {
       // Note $type is a piece of form here; 
@@ -120,7 +68,8 @@ function theme_profile2_overview_types($variables) {
       $type = &$form[$key];
       
       $row = array();
-      $row[] = drupal_render($type['label']);
+      $row[] = drupal_render($type['identification']);
+            
       if (isset($type['weight'])) {
         $type['weight']['#attributes']['class'] = array('type-weight');
         $row[] = drupal_render($type['weight']);
@@ -158,14 +107,17 @@ function theme_profile2_overview_types($variables) {
 
 /**
  * Theme the label and machine name for the profile type admin list.
- * @todo bring this back into the draggable form
+ *
+ * @param $variables
+ *  Theme variables, containing in single key 'form' the name and label form
+ *  elements to render.
  */
 function theme_profile2_admin_type($variables) {
-  $label = $variables['label'];
-  $type  = $variables['type'];
+  $label = $variables['form']['label'];
+  $name  = $variables['form']['name'];
 
-  $output = check_plain($label);
-  $output .= ' <small> (Machine name: ' . check_plain($type->name) . ')</small>';
+  $output = drupal_render($label);
+  $output .= ' <small> (Machine name: ' . drupal_render($name) . ')</small>';
   // @todo if we add a description column to profile types.
   //$output .= '<div class="description">' . filter_xss_admin($type['description']) . '</div>';
   return $output;

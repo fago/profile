@@ -507,7 +507,7 @@ function profile2_theme() {
       'render element' => 'form',
     ),  
     'profile2_admin_type' => array(
-      'variables' => array('label' => NULL, 'type' => NULL),
+      'render element' => 'form',
     ),
   );
 }
