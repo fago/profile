@@ -51,6 +51,22 @@ function profile2_overview_types($form) {
 }
 
 /**
+ * Submit handler for vocabularies overview. Updates changed vocabulary weights.
+ *
+ * @see taxonomy_overview_vocabularies()
+ */
+function profile2_overview_types_submit($form, &$form_state) {
+  foreach ($form_state['values'] as $id => $type) {
+    // @todo? WTF? isset($type['weight']) fails as a test here?
+    if (is_array($type) && $form[$id]['#profile_type']->weight != $form_state['values'][$id]['weight']) {
+      $form[$id]['#profile_type']->weight = $form_state['values'][$id]['weight'];
+      profile2_type_save($form[$id]['#profile_type']);
+    }
+  }
+}
+
+
+/**
  * Theme the profile type overview as a sortable list of types.
  *
  * @ingroup themeable
