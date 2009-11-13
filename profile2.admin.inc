@@ -10,6 +10,8 @@
  * Form builder to display the profile type admin overview page and set weights.
  *
  * @ingroup forms
+ * @see profile2_overview_types_submit()
+ * @see theme_profile2_overview_types() 
  */
 function profile2_overview_types($form) {
   $types = profile2_get_types();
@@ -34,7 +36,6 @@ function profile2_overview_types($form) {
     if (!$type->locked) {
       $form[$id]['delete'] = array('#type' => 'link', '#title' => t('delete'), '#href' => "admin/structure/profiles/manage/$type_url_str/delete");
     }
-    
   }
 
   // Only make this form include a submit button and weight if more than one
@@ -108,6 +109,9 @@ function theme_profile2_overview_types($variables) {
 /**
  * Theme the label and machine name for the profile type admin list.
  *
+ * @ingroup themeable
+ * @see profile2_overview_types()
+ * 
  * @param $variables
  *  Theme variables, containing in single key 'form' the name and label form
  *  elements to render.
@@ -125,6 +129,8 @@ function theme_profile2_admin_type($variables) {
 
 /**
  * Generates the profile type editing form.
+ *
+ * @ingroup forms
  */
 function profile2_type_form($form, &$form_state, $type = NULL) {
   // @todo: set defaults for new type.
@@ -181,7 +187,6 @@ function profile2_type_form($form, &$form_state, $type = NULL) {
       '#value' => $type->name,
     );
   }
-  
   
   return $form;
 }
