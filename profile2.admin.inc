@@ -9,6 +9,9 @@
 /**
  * Form builder to display the profile type admin overview page and set weights.
  *
+ * @todo: should include hardcoded user categories from other modules
+ * (eg simplenews, 'My subscriptions') for ordering.
+ *
  * @ingroup forms
  * @see profile2_overview_types_submit()
  * @see theme_profile2_overview_types() 
