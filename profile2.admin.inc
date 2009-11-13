@@ -30,7 +30,7 @@ function profile2_overview_types($form) {
       // Manage fields.
       $form[$id]['manage_fields'] = array('#type' => 'link', '#title' => t('manage fields'), '#href' => "admin/structure/profiles/manage/$type_url_str/fields");
       // Display fields.
-      $form[$id]['manage_display'] = array('#type' => 'link', '#title' => t('display fields'), '#href' => "admin/structure/profiles/manage/$type_url_str/display");
+      $form[$id]['manage_display'] = array('#type' => 'link', '#title' => t('manage display'), '#href' => "admin/structure/profiles/manage/$type_url_str/display");
     }
     // Delete type.
     if (!$type->locked) {
