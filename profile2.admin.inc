@@ -19,7 +19,9 @@ function profile2_overview_types() {
   foreach($types as $id => $type) {
     $type_url_str = str_replace('_', '-', $id);
 
+    // Label and machine name.
     $row[] = array('data' => theme('profile2_admin_type', array('label' => $type->label, 'type' => $type)));
+    // Edit type.
     $row[] = array('data' => l(t('edit'), 'admin/structure/profiles/manage/' . $type_url_str));
     if ($field_ui) {
       // Manage fields.
@@ -28,7 +30,7 @@ function profile2_overview_types() {
       // Display fields.
       $row[] = array('data' => l(t('manage display'), 'admin/structure/profiles/manage/' . $type_url_str . '/display'));
     }
-    // Set the delete column.
+    // Delete type.
     if (!$type->locked) {
       $row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
     }
