@@ -109,7 +109,7 @@ function profile_type_load($name) {
  * Menu title callback.
  */
 function profile2_type_page_title($type) {
-  return $type->name;
+  return $type->label;
 }
 
 /**
