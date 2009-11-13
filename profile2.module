@@ -512,3 +512,19 @@ function profile2_theme() {
   );
 }
 
+/**
+ * Implement hook_help().
+ */
+function profile2_help($path, $arg) {
+  switch ($path) {
+    /*
+    // @todo write me!
+    case 'admin/help#profile2':
+      return $output;
+    */
+    case 'admin/structure/profiles':
+      $output = '<p>' . t('Configure the profile types for your site. Rearrange profiles here to change their order in the tabs on the user account page.') . '</p>';
+      return $output;
+  }
+}
+
