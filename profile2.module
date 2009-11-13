@@ -48,7 +48,8 @@ function profile2_menu() {
   $items['admin/structure/profiles'] = array(
     'title' => 'Profile types',
     'description' => 'Manage profiles by type, including fields, permissions, visibility.',
-    'page callback' => 'profile2_overview_types',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('profile2_overview_types'),
     'access arguments' => array('administer profiles'),
     'file' => 'profile2.admin.inc',
   );
@@ -502,6 +503,9 @@ function profile2_category_access($account, $profile_name) {
  */
 function profile2_theme() {
   return array(
+    'profile2_overview_types' => array(
+      'render element' => 'form',
+    ),  
     'profile2_admin_type' => array(
       'variables' => array('label' => NULL, 'type' => NULL),
     ),

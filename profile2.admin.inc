@@ -7,9 +7,54 @@
  */
 
 /**
- * Displays the profile type admin overview page.
+ * Form builder to display the profile type admin overview page and set weights.
+ *
+ * @ingroup forms
  */
-function profile2_overview_types() {
+function profile2_overview_types($form) {
+  $types = profile2_get_types();
+  $field_ui = module_exists('field_ui');  
+
+  $form['#tree'] = TRUE;  // ???
+  foreach($types as $id => $type) {
+    $type_url_str = str_replace('_', '-', $id);    
+    $form[$id]['#profile_type'] = $type;
+    $form[$id]['label'] = array('#markup' => check_plain($type->label));
+    $form[$id]['weight'] = array('#type' => 'weight', '#delta' => 10, '#default_value' => $type->weight);
+    $form[$id]['edit'] = array('#type' => 'link', '#title' => t('edit'), '#href' => 'admin/structure/profiles/manage/' . $type_url_str);
+    if ($field_ui) {
+      // Manage fields.
+      $form[$id]['manage_fields'] = array('#type' => 'link', '#title' => t('manage fields'), '#href' => "admin/structure/profiles/manage/$type_url_str/fields");
+      // array('data' => l(t('manage fields'), 'admin/structure/profiles/manage/' . $type_url_str . '/fields'));
+      // Display fields.
+      $form[$id]['manage_display'] = array('#type' => 'link', '#title' => t('display fields'), '#href' => "admin/structure/profiles/manage/$type_url_str/display");
+      //$row[] = array('data' => l(t('manage display'), 'admin/structure/profiles/manage/' . $type_url_str . '/display'));
+    }
+    // Delete type.
+    if (!$type->locked) {
+      $form[$id]['delete'] = array('#type' => 'link', '#title' => t('delete'), '#href' => "admin/structure/profiles/manage/$type_url_str/delete");
+      //$row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
+    }
+    
+  }
+
+  // Only make this form include a submit button and weight if more than one
+  // vocabulary exists.
+  if (count($types) > 1) {
+    $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+  }
+  elseif (isset($type)) {
+    unset($form[$id]['weight']);
+  }
+  dsm($form);
+  //$form['foo'] = array('#markup' => 'foo');
+  
+  return $form;
+  
+  ///////// Old code for reference while I work
+  
+  
+  
   $types = profile2_get_types();
   $field_ui = module_exists('field_ui');  
 
@@ -54,7 +99,66 @@ function profile2_overview_types() {
 }
 
 /**
+ * Theme the profile type overview as a sortable list of types.
+ *
+ * @ingroup themeable
+ * @see profile2_overview_types()
+ */
+function theme_profile2_overview_types($variables) {
+  $form = $variables['form'];
+  $field_ui = module_exists('field_ui');  
+
+  $rows = array();
+  
+  //dsm('theme_profile2_overview_types');
+  //dsm($form);
+
+  foreach (element_children($form) as $key) {
+    if (isset($form[$key]['#profile_type'])) {
+      // Note $type is a piece of form here; 
+      // find the actual object at $type['#profile_type']
+      $type = &$form[$key];
+      
+      $row = array();
+      $row[] = drupal_render($type['label']);
+      if (isset($type['weight'])) {
+        $type['weight']['#attributes']['class'] = array('type-weight');
+        $row[] = drupal_render($type['weight']);
+      }
+      $row[] = drupal_render($type['edit']);
+      
+      if ($field_ui) {
+        $row[] = drupal_render($type['manage_fields']);
+        $row[] = drupal_render($type['manage_display']);
+      }
+      if (!$type['#profile_type']->locked) {
+        $row[] = drupal_render($type['delete']);
+      }
+      else {
+        $row[] = array('data' => '');
+      }
+      
+      $rows[] = array('data' => $row, 'class' => array('draggable'));
+    }
+  }
+  
+  if (empty($rows)) {
+    $rows[] = array(array('data' => t('No profile types available. <a href="@link">Add profile type</a>.', array('@link' => url('admin/structure/profiles/add'))), 'colspan' => '5', 'class' => array('message')));
+  }
+  
+  $header = array(t('Name'));
+  if (isset($form['submit'])) {
+    $header[] = t('Weight');
+    drupal_add_tabledrag('profile_types', 'order', 'sibling', 'type-weight');
+  }
+  $header[] = array('data' => t('Operations'), 'colspan' => $field_ui ? '4' : '2');
+  
+  return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'profile_types'))) . drupal_render_children($form);
+}
+
+/**
  * Theme the label and machine name for the profile type admin list.
+ * @todo bring this back into the draggable form
  */
 function theme_profile2_admin_type($variables) {
   $label = $variables['label'];
