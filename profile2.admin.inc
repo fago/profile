@@ -72,5 +72,49 @@ function profile2_type_form($form, &$form_state, $type = NULL) {
     '#title' => t('Identification'),
   );
   
+  $form['identity']['label'] = array(
+    '#title' => t('Label'),
+    '#type' => 'textfield',
+    '#default_value' => $type->label,
+    '#description' => t('The human-readable name of this profile type. This text will be displayed as the tab title on the profile page, and when users add information about themselves. It is recommended that this name begin with a capital letter and contain only letters, numbers, and <strong>spaces</strong>. This name must be unique.'),
+    '#required' => TRUE,
+    '#size' => 30,
+    '#field_suffix' => ' <small id="edit-name-suffix">' . ($type->locked ? t('Machine name: @name', array('@name' => $type->name)) : '&nbsp') . '</small>',
+  );
+
+  if (!$type->locked) {
+    $js_settings = array(
+      'type' => 'setting',
+      'data' => array(
+        'machineReadableValue' => array(
+          'name' => array(
+            'text' => t('Machine name'),
+            'target' => 'name',
+            'searchPattern' => '[^a-z0-9]+',
+            'replaceToken' => '_',
+          ),
+        ),
+      ),
+    );
+    $form['identity']['name'] = array(
+      '#title' => t('Machine name'),
+      '#type' => 'textfield',
+      '#default_value' => $type->name,
+      '#maxlength' => 32,
+      '#required' => TRUE,
+      '#description' => t('The machine-readable name of this content type. This text will be used for constructing the URL of the <em>add new content</em> page for this content type. This name must contain only lowercase letters, numbers, and underscores. Underscores will be converted into hyphens when constructing the URL of the <em>add new content</em> page. This name must be unique.'),
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'system') . '/system.js', $js_settings),
+      ),
+    );
+  }
+  else {
+    $form['identity']['type'] = array(
+      '#type' => 'value',
+      '#value' => $type->name,
+    );
+  }
+  
+  
   return $form;
 }
