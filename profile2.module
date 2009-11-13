@@ -136,7 +136,7 @@ function profile2_get_types($name = NULL) {
   if (!isset($types)) {
     $types = db_select('profile_type', 'pt')
       ->fields('pt')
-      ->orderBy('name')
+      ->orderBy('weight')      
       ->execute()
       ->fetchAllAssoc('name');
     foreach ($types as &$type) {
