@@ -53,7 +53,7 @@ function profile2_overview_types($form) {
 /**
  * Submit handler for vocabularies overview. Updates changed vocabulary weights.
  *
- * @see taxonomy_overview_vocabularies()
+ * @see profile2_overview_types()
  */
 function profile2_overview_types_submit($form, &$form_state) {
   foreach ($form_state['values'] as $id => $type) {
