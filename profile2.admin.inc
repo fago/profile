@@ -11,8 +11,9 @@
  */
 function profile2_overview_types() {
   $types = profile2_get_types();
-  
-  $header = array(t('Name'), array('data' => t('Operations'), 'colspan' => '2'));
+  $field_ui = module_exists('field_ui');  
+
+  $header = array(t('Name'), array('data' => t('Operations'), 'colspan' => $field_ui ? '4' : '2'));
   $rows = array();
   
   foreach($types as $id => $type) {
@@ -20,6 +21,13 @@ function profile2_overview_types() {
 
     $row[] = array('data' => theme('profile2_admin_type', array('label' => $type->label, 'type' => $type)));
     $row[] = array('data' => l(t('edit'), 'admin/structure/profiles/manage/' . $type_url_str));
+    if ($field_ui) {
+      // Manage fields.
+      $row[] = array('data' => l(t('manage fields'), 'admin/structure/profiles/manage/' . $type_url_str . '/fields'));
+
+      // Display fields.
+      $row[] = array('data' => l(t('manage display'), 'admin/structure/profiles/manage/' . $type_url_str . '/display'));
+    }
     // Set the delete column.
     if (!$type->locked) {
       $row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
@@ -27,6 +35,7 @@ function profile2_overview_types() {
     else {
       $row[] = array('data' => '');
     }
+    
     $rows[] = $row;
   }
 
