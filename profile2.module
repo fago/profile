@@ -39,7 +39,19 @@ function profile2_entity_info() {
  * Implement hook_menu().
  */
 function profile2_menu() {
-  //TODO: Add page to manage profile types at admin/structure/profiles.
+  $items['admin/structure/profiles'] = array(
+    'title' => 'Profile types',
+    'description' => 'Manage profiles by type, including fields, permissions, visibility.',
+    'page callback' => 'profile2_overview_types',
+    'access arguments' => array('administer profiles'),
+    'file' => 'profile_types.inc',
+  );
+  $items['admin/structure/profiles/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  return $items;  
 }
 
 /**
