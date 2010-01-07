@@ -1,0 +1,141 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install, update and uninstall functions for the profile module.
+ */
+
+/**
+ * Implement hook_enable().
+ */
+function profile_enable() {
+  if (!profile_get_types('main')) {
+    // Refresh schema cache, needed to let type save work during installation.
+    drupal_get_schema('profile_type', TRUE);
+    
+    profile_type_save(array(
+      'name' => 'main',
+      'label' => t('Profile'),
+      'weight' => 0,
+      'locked' => TRUE,
+    ));
+    // Auto-create a field for the full name.
+    $field = array(
+      'field_name' => 'profile_fullname',
+      'type' => 'text',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    );
+    field_create_field($field);
+  
+    $instance = array(
+      'field_name' => 'profile_fullname',
+      'bundle' => 'main',
+      'label' => 'Full name',
+      'description' => 'Specify your first and last name.',
+      'widget' => array(
+        'type' => 'text_textfield',
+        'weight' => 0,
+      ),
+    );
+    field_create_instance($instance);
+  }
+}
+
+/**
+ * Implement hook_uninstall().
+ */
+function profile_uninstall() {
+  variable_del('profile_register');
+}
+
+/**
+ * Implement hook_schema().
+ */
+function profile_schema() {
+  $schema['profile'] = array(
+    'description' => 'Stores profile items.',
+    'fields' => array(
+      'pid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique profile item ID.',
+      ),
+      'name' => array(
+        'description' => 'The name of the profile.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The {users}.uid of the associated user.",
+      ),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'foreign keys' => array(
+      'uid' => array('users' => 'uid'),
+      'name' => array('profile_types' => 'name'),
+    ),
+    'primary key' => array('pid'),
+  );
+
+  $schema['profile_type'] = array(
+    'description' => 'Stores information about all defined profile types.',
+    'fields' => array(
+      'name' => array(
+        'description' => 'The machine-readable name of this profile type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this profile type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this profile type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this profile type.',
+      ),
+    ),
+    'primary key' => array('name'),
+  );
+  return $schema;
+}
+
+/**
+ * Rename {profile_fields} table to {profile_field} and {profile_values} to {profile_value}.
+ */
+function profile_update_7001() {
+  db_rename_table('profile_fields', 'profile_field');
+  db_rename_table('profile_values', 'profile_value');
+}
+
+//TODO: Update procedure.

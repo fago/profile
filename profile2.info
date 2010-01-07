@@ -1,0 +1,9 @@
+; $Id$
+name = Profile
+description = Supports configurable user profiles.
+package = Core
+version = VERSION
+core = 7.x
+files[] = profile.module
+files[] = profile.install
+files[] = profile.test

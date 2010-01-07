@@ -1,0 +1,403 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Support for configurable user profiles.
+ */
+
+/**
+ * Implement hook_entity_info().
+ */
+function profile_entity_info() {
+  $return = array(
+    'profile' => array(
+      'label' => t('Profile'),
+      'controller class' => 'DrupalDefaultEntityController',
+      'base table' => 'profile',
+      'fieldable' => TRUE,
+      'object keys' => array(
+        'id' => 'pid',
+        'bundle' => 'name',
+      ),
+      'bundles' => array(),
+    ),
+  );
+  foreach (profile_get_types() as $name => $info) {
+    $return['profile']['bundles'][$name] = array(
+      'label' => $info['label'],
+      'admin' => array(
+        'path' => 'admin/structure/profiles/' . str_replace('_', '-', $name),
+        'access arguments' => array('administer profiles'),
+      ),
+    );
+  }
+  return $return;
+}
+
+/**
+ * Implement hook_permission().
+ */
+function profile_permission() {
+  return array(
+    'administer profiles' =>  array(
+      'title' => t('Administer profiles'),
+      'description' => t('Manage user profiles.'),
+    ),
+  );
+}
+
+/**
+ * Gets an array of all profile types, keyed by the name.
+ *
+ * @param $name
+ *   If set, the type with the given name is returned.
+ */
+function profile_get_types($name = NULL) {
+  $types = drupal_static(__FUNCTION__);
+  if (!isset($types)) {
+    $types = db_select('profile_type', 'pt')
+      ->fields('pt')
+      ->orderBy('name')
+      ->execute()
+      ->fetchAllAssoc('name', PDO::FETCH_ASSOC);
+    foreach ($types as &$type) {
+      $data = unserialize($type['data']);
+      unset($type['data']);
+      $type += (array)$data + array(
+        'user category' => TRUE,
+        'user view' => TRUE,
+      );
+    }
+  }
+  if (isset($name)) {
+    return isset($types[$name]) ? $types[$name] : FALSE;
+  }
+  return $types;
+}
+
+/**
+ * Implement hook_menu().
+ */
+function profile_menu() {
+  //TODO: Add page to manage profile types at admin/structure/profiles.
+}
+
+/**
+ * Fetch a profile object.
+ *
+ * @param $pid
+ *   Integer specifying the profile id.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   A fully-loaded $profile object or FALSE if it cannot be loaded.
+ *
+ * @see profile_load_multiple()
+ */
+function profile_load($pid, $reset = FALSE) {
+  $profiles = profile_load_multiple(array($pid), array(), $reset);
+  return reset($profiles);
+}
+
+/**
+ * Load multiple profiles based on certain conditions.
+ *
+ * @param $pids
+ *   An array of profile IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {profile} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of profile objects, indexed by pid.
+ *
+ * @see entity_load()
+ * @see profile_load()
+ * @see profile_load_by_user()
+ */
+function profile_load_multiple($pids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('profile', $pids, $conditions, $reset);
+}
+
+/**
+ * Fetch profiles by account.
+ *
+ * @param $account
+ *   The user account to load profiles for, or its uid.
+ * @param $name
+ *   To load a single profile, pass the name of the profile to load.
+ * @return
+ *   Either a single profile or an array of profiles keyed by profile name.
+ *
+ * @see profile_load_multiple()
+ */
+function profile_load_by_user($account, $name = NULL) {
+  $cache = drupal_static(__FUNCTION__, array());
+  $uid = is_object($account) ? $account->uid : $account;
+  
+  if (!isset($cache[$uid])) {
+    if (empty($name)) {
+      $profiles = profile_load_multiple(array(), array('uid' => $uid));
+      // Cache ids for further lookups.
+      $cache[$uid] = array();
+      foreach ($profiles as $pid => $profile) {
+        $cache[$uid][$profile->name] = $pid;
+      }
+      return array_combine(array_keys($cache[$uid]), $profiles);
+    }
+    $cache[$uid] = db_select('profile', 'p')
+      ->fields('p', array('name', 'pid'))
+      ->condition('uid', $uid)
+      ->execute()
+      ->fetchAllKeyed();
+  }
+  if (isset($name)) {
+    return isset($cache[$uid][$name]) ? profile_load($cache[$uid][$name]) : FALSE;
+  }
+  // Return an array containing profiles keyed by profile name.
+  return $cache[$uid] ? array_combine(array_keys($cache[$uid]), profile_load_multiple($cache[$uid])) : $cache[$uid];
+}
+
+/**
+ * Deletes a profile
+ */
+function profile_delete($profile) {
+  db_delete('profile')->condition('pid', $profile->pid)->execute();
+  // Invoke hook.
+  module_invoke_all('profile_delete', $profile);
+  field_attach_delete('profile', $profile);
+
+  // Clear caches.
+  cache_clear_all();
+  profile_load_multiple(FALSE, array(), TRUE);
+  drupal_static_reset('profile_load_by_user');
+}
+
+/**
+ * Implement hook_user_cancel().
+ */
+function profile_user_cancel(&$edit, $account, $method) {
+  // Delete all profiles of the user in any case.
+  foreach (profile_load_by_user($account) as $profile) {
+    profile_delete($profile);
+  }
+}
+
+/**
+ * Saves a profile to the database.
+ *
+ * @param $profile
+ *   The profile object.
+ */
+function profile_save($profile) {
+  field_attach_presave('profile', $profile);
+  module_invoke_all('profile_presave', $profile);
+
+  if (!empty($profile->pid)) {
+    $return = drupal_write_record('profile', $profile, 'pid');
+    field_attach_update('profile', $profile);
+    module_invoke_all('profile_update', $profile);
+  }
+  else {
+    $return = drupal_write_record('profile', $profile);
+    field_attach_insert('profile', $profile);
+    module_invoke_all('profile_insert', $profile);
+  }
+  return $return;
+}
+
+/**
+ * Saves a profile type to the db.
+ *
+ * @param $type
+ *   An array of information about the type.
+ */
+function profile_type_save(array $type) {
+  $types = profile_get_types();
+  // Save all additional properties to the 'data' field.
+  $data = $type;
+  unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['data']);
+  $type['data'] = $data;
+
+  if (isset($types[$type['name']])) {
+    drupal_write_record('profile_type', $type, 'name');
+    module_invoke_all('profile_type_update', $type);
+  }
+  else {
+    drupal_write_record('profile_type', $type);
+    field_attach_create_bundle($type['name']);
+    module_invoke_all('profile_type_insert', $type);
+  }
+  drupal_static_reset('profile_get_types');
+}
+
+/**
+ * Deletes a profile type from.
+ */
+function profile_type_delete(array $type) {
+  // Delete profiles.
+  $pids = db_select('profile', 'p')
+    ->fields('p', array('pid'))
+    ->condition('name', $type['name'])
+    ->execute()
+    ->fetchCol();
+  foreach ($pids as $pid) {
+    profile_delete(profile_load($pid));
+  }
+  db_delete('profile_type')->condition('name', $type['name'])->execute();
+  // Invoke hook.
+  module_invoke_all('profile_type_delete', $type);
+  field_attach_delete_bundle($type['name']);
+}
+
+/**
+ * Implement hook_profile_load()
+ */
+function profile_profile_load($profiles) {
+  $types = profile_get_types();
+  // Load the profile's label.
+  foreach ($profiles as $profile) {
+    if (isset($types[$profile->name])) {
+      $profile->label = $types[$profile->name]['label'];
+    }
+  }
+}
+
+/**
+ * Implement hook_user_view().
+ */
+function profile_user_view($account) {
+  foreach (profile_get_types() as $name => $profile_type) {
+    if ($profile_type['user view'] && ($profile = profile_load_by_user($account, $name))) {
+      $account->content['profile_' . $name] = array(
+        '#type' => 'user_profile_category',
+        '#title' => $profile->label,
+      );
+      $account->content['profile_' . $name] += field_attach_view('profile', $profile);
+    }
+  }
+}
+
+/**
+ * Implement hook_field_build_modes().
+ */
+function profile_field_build_modes($obj_type) {
+  if ($obj_type == 'profile') {
+    return array(
+      'full' => t('Full profile'),
+    );
+  }
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter() for the user edit form.
+ *
+ * @see profile_form_validate_handler
+ * @see profile_form_submit_handler
+ */
+function profile_form_user_profile_form_alter(&$form, &$form_state) {
+  if (($type = profile_get_types($form['#user_category'])) && $type['user category']) {
+    if (empty($form_state['profile'])) {
+      $form['#profile'] = profile_load_by_user($form['#user'], $form['#user_category']);
+      if (!$form['#profile']) {
+        $form['#profile'] = (object)array('name' => $form['#user_category'], 'uid' => $form['#user']->uid);
+      }
+    }
+    profile_attach_form($form, $form_state);
+  }
+}
+
+/**
+ * Implement hook_form_FORM_ID_alter() for the registration form.
+ */
+function profile_form_user_register_alter(&$form, &$form_state) {
+  $name = variable_get('profile_register', 'main');
+  if ($name && ($type = profile_get_types($name))) {
+    if (empty($form_state['profile'])) {
+      $form['#profile'] = (object)array('name' => $name);
+    }
+    profile_attach_form($form, $form_state);
+  }
+}
+
+/**
+ * Attaches the profile form of the profile set in $form['#profile'] or
+ * $form_state['profile'].
+ *
+ * @see profile_form_validate_handler()
+ * @see profile_form_submit_handler()
+ */
+function profile_attach_form(&$form, &$form_state) {
+  if (isset($form_state['profile'])) {
+    // This is a multistep form rebuild, thus initialize with the given profile.
+    $form['#profile'] = $form_state['profile'];
+  }
+  $form['#builder_function'] = 'profile_form_submit_builder';
+  field_attach_form('profile', $form['#profile'], $form, $form_state);
+  $form['#validate'][] = 'profile_form_validate_handler';
+  $form['#submit'][] = 'profile_form_submit_handler';
+}
+
+
+/**
+ * @see profile_attach_form()
+ */
+function profile_form_validate_handler(&$form, &$form_state) {
+  field_attach_form_validate('profile', $form['#profile'], $form, $form_state);
+}
+
+/**
+ * @see profile_attach_form()
+ */
+function profile_form_submit_builder(&$form, &$form_state) {
+  field_attach_submit('profile', $form['#profile'], $form, $form_state);
+  $form_state['profile'] = $form['#profile'];
+  $form_state['rebuild'] = TRUE;
+  return $form['#profile'];
+}
+
+/**
+ * @see profile_attach_form()
+ */
+function profile_form_submit_handler(&$form, &$form_state) {
+  $profile = profile_form_submit_builder($form, $form_state);
+  // During registration set the uid field of the newly created user.
+  if (empty($profile->uid) && isset($form_state['user']->uid)) {
+    $profile->uid = $form_state['user']->uid;
+  }
+  profile_save($profile);
+  unset($form_state['rebuild']);
+}
+
+/**
+ * Implement hook_user_categories().
+ */
+function profile_user_categories() {
+  $data = array();
+  foreach (profile_get_types() as $name => $type) {
+    $data[] = array(
+      'name' => $name,
+      'title' => $type['label'],
+      // Add an offset so a weight of 0 appears right of the account category.
+      'weight' => $type['weight'] + 3,
+      'access callback' => 'profile_category_access',
+      'access arguments' => array(1, $name)
+    );
+  }
+  return $data;
+}
+
+/**
+ * Menu item access callback - check if a user has access to a profile category.
+ */
+function profile_category_access($account, $profile_name) {
+  if (user_access('administer profiles') && $account->uid > 0) {
+    return TRUE;
+  }
+  else {
+    //TODO: Should we add a more sophisticated access handling invoking
+    // hook_profile_access ?
+    return $GLOBALS['user']->uid == $account->uid;
+  }
+}
