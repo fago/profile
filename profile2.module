@@ -429,15 +429,24 @@ function profile2_attach_form(&$form, &$form_state) {
   // Make sure $form['#fields'] is set at the top level of $form.
   $form += array('#fields' => array());
   foreach ($form_state['storage']['profiles'] as $name => $profile) {
+
     field_attach_form('profile', $profile, $form['profile_' . $profile->name], $form_state);
+
+    // Make sure all fields are present in #fields and fix the form_path
     $form['#fields'] += $form['profile_' . $profile->name]['#fields'];
-    // Fix the form path so that field AHAH callbacks are working.
+
     foreach ($form['profile_' . $profile->name]['#fields'] as $fieldname => $info) {
       array_unshift($form['#fields'][$fieldname]['form_path'], 'profile_' . $profile->name);
     }
   }
   $form['#validate'][] = 'profile2_form_validate_handler';
-  $form['#submit'][] = 'profile2_form_submit_handler';
+  // Extract the form values and clean them up first. This is needed as some
+  // submit callbacks like user_register_submit() rely on clean form values.
+  $form['#submit'] = array_merge(
+    array('profile2_form_submit_builder', 'profile2_form_submit_cleanup'),
+    $form['#submit'],
+    array('profile2_form_submit_handler')
+  );
 }
 
 /**
@@ -450,8 +459,11 @@ function profile2_form_validate_handler(&$form, &$form_state) {
 }
 
 /**
- * Submit callback for non-js add-more submits. Submits embedded profiles and
- * enables form rebuilding.
+ * Submit builder. Extracts the form values and updates the entities. Afterwards
+ * our form values are removed.
+ *
+ * This also serves as callback for non-js add-more submits, thus it enables
+ * rebuilding.
  *
  * @see profile2_attach_form()
  */
@@ -463,11 +475,22 @@ function profile2_form_submit_builder(&$form, &$form_state) {
 }
 
 /**
+ * Cleans up the form values.
+ *
+ * @see profile2_attach_form()
+ */
+function profile2_form_submit_cleanup(&$form, &$form_state) {
+  foreach ($form['#fields'] as $field_name => $info) {
+    unset($form_state['values'][$field_name]);
+  }
+}
+
+/**
+ * Finally save all profiles.
+ *
  * @see profile2_attach_form()
  */
 function profile2_form_submit_handler(&$form, &$form_state) {
-  profile2_form_submit_builder($form, $form_state);
-  // Save all profiles.
   foreach ($form_state['storage']['profiles'] as $name => $profile) {
     // During registration set the uid field of the newly created user.
     if (empty($profile->uid) && isset($form_state['user']->uid)) {
