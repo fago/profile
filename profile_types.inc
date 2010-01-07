@@ -58,3 +58,21 @@ function theme_profile_admin_overview($variables) {
   //$output .= '<div class="description">' . filter_xss_admin($type['description']) . '</div>';
   return $output;
 }
+
+/**
+ * Generates the profile type editing form.
+ */
+function profile_type_form($form, &$form_state, $type = NULL) {
+  if (!isset($type->name)) {
+    // @todo!
+    // This is a new type. Node module managed types are custom and unlocked.
+    //$type = node_type_set_defaults(array('custom' => 1, 'locked' => 0));
+  }
+  
+  $form['identity'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Identification'),
+  );
+  
+  return $form;
+}

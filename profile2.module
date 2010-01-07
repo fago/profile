@@ -51,6 +51,15 @@ function profile2_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
+  $items['admin/structure/profiles/add'] = array(
+    'title' => 'Add profile type',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('profile_type_form'),
+    'access arguments' => array('administer profiles'),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'profile_types.inc',
+  );
+  
   return $items;  
 }
 
