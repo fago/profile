@@ -10,24 +10,24 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     return array(
       'name' => 'Editing profiles',
       'description' => 'Tests basic CRUD and editing of profiles.',
-      'group' => 'Profile',
+      'group' => 'Profile2',
     );
   }
   
   function setUp() {
-    parent::setUp('profile');
+    parent::setUp('profile2');
     
-    profile_type_save(array(
+    profile2_type_save(array(
       'name' => 'test',
       'label' => 'label',
       'weight' => 0
     ));
-    profile_type_save(array(
+    profile2_type_save(array(
       'name' => 'test2',
       'label' => 'label2',
       'weight' => 2
     ));
-    profile_load_multiple(FALSE, array(), TRUE);
+    profile2_load_multiple(FALSE, array(), TRUE);
   }
   
   /**
@@ -37,31 +37,31 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     return;
     $user1 = $this->drupalCreateUser();
     // Create profiles for the user1 and unrelated to a user.
-    profile_save((object)array('name' => 'test', 'uid' => $user1->uid));
-    profile_save((object)array('name' => 'test2', 'uid' => $user1->uid));
+    profile2_save((object)array('name' => 'test', 'uid' => $user1->uid));
+    profile2_save((object)array('name' => 'test2', 'uid' => $user1->uid));
     $profile = (object)array('name' => 'test', 'uid' => NULL);
-    profile_save($profile);
+    profile2_save($profile);
     
-    $profiles = profile_load_by_user($user1);
+    $profiles = profile2_load_by_user($user1);
     $this->assertEqual($profiles['test']->label, 'label', 'Created and loaded profile 1.');
     $this->assertEqual($profiles['test2']->label, 'label2', 'Created and loaded profile 2.');
     
     // Test looking up from static cache works also.
-    $profiles = profile_load_by_user($user1);
+    $profiles = profile2_load_by_user($user1);
     $this->assertEqual($profiles['test']->label, 'label', 'Looked up profiles again.');
 
-    $loaded = profile_load($profile->pid);
+    $loaded = profile2_load($profile->pid);
     $this->assertEqual($loaded->pid, $profile->pid, 'Loaded profile unrelated to a user.');
     
-    profile_delete($profiles['test']);
-    $profiles2 = profile_load_by_user($user1);
+    profile2_delete($profiles['test']);
+    $profiles2 = profile2_load_by_user($user1);
     $this->assertEqual(array_keys($profiles2), array('test2'), 'Profile successfully deleted.');
     
-    profile_save($profiles2['test2']);
+    profile2_save($profiles2['test2']);
     $this->assertEqual($profiles['test2']->pid, $profiles2['test2']->pid, 'Profile successfully updated.');
 
     // Delete a profile type.
-    profile_type_delete(profile_get_types('test'));
+    profile2_type_delete(profile_get_types('test'));
   }
   
   /**
@@ -78,20 +78,20 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     $this->assertText(t('Your password and further instructions have been sent to your e-mail address.'), t('User registered successfully.'));
     $new_user = reset(user_load_multiple(array(), array('name' => $name, 'mail' => $mail)));
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
-    $this->assertEqual(profile_load_by_user($new_user, 'main')->profile_fullname[FIELD_LANGUAGE_NONE][0]['value'], $edit['profile_fullname[zxx][0][value]'], 'Profile created.');
+    $this->assertEqual(profile2_load_by_user($new_user, 'main')->profile_fullname[FIELD_LANGUAGE_NONE][0]['value'], $edit['profile_fullname[zxx][0][value]'], 'Profile created.');
   }
   
   /**
    * Test basic edit and display.
    */
   function testEditAndDisplay() {
-    $user1 = $this->drupalCreateUser();
+    $user1 = $this->drupalCreateUser(array());
     $this->drupalLogin($user1);
     // Create profiles for the user1.
     $edit['profile_fullname[zxx][0][value]'] = $this->randomName();
     $this->drupalPost('user/' . $user1->uid . '/edit/main', $edit, t('Save'));
     $this->assertText(t('The changes have been saved.'), 'Profile saved.');
-    $this->assertEqual(profile_load_by_user($user1, 'main')->profile_fullname[FIELD_LANGUAGE_NONE][0]['value'], $edit['profile_fullname[zxx][0][value]'], 'Profile edited.');
+    $this->assertEqual(profile2_load_by_user($user1, 'main')->profile_fullname[FIELD_LANGUAGE_NONE][0]['value'], $edit['profile_fullname[zxx][0][value]'], 'Profile edited.');
     
     $this->drupalGet('user/' . $user1->uid);
     $this->assertText(check_plain($edit['profile_fullname[zxx][0][value]']), 'Profile displayed.');
