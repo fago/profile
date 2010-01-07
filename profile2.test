@@ -36,9 +36,9 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
   function testCRUD() {
     $user1 = $this->drupalCreateUser();
     // Create profiles for the user1 and unrelated to a user.
-    profile2_save((object)array('name' => 'test', 'uid' => $user1->uid));
-    profile2_save((object)array('name' => 'test2', 'uid' => $user1->uid));
-    $profile = (object)array('name' => 'test', 'uid' => NULL);
+    profile2_save(profile_create(array('name' => 'test', 'uid' => $user1->uid)));
+    profile2_save(profile_create(array('name' => 'test2', 'uid' => $user1->uid)));
+    $profile = profile_create(array('name' => 'test', 'uid' => NULL));
     profile2_save($profile);
     
     $profiles = profile2_load_by_user($user1);
@@ -61,6 +61,9 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
 
     // Delete a profile type.
     profile2_type_delete(profile2_get_types('test'));
+    // Try deleting multiple profiles by deleting all existing profiles.
+    $pids = array_keys(profile2_load_multiple(FALSE));
+    profile2_delete_multiple($pids);
   }
   
   /**

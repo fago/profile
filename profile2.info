@@ -1,9 +1,8 @@
 ; $Id$
-name = Profile
+name = Profile2
 description = Supports configurable user profiles.
-package = Core
 version = VERSION
 core = 7.x
-files[] = profile.module
-files[] = profile.install
-files[] = profile.test
+files[] = profile2.module
+files[] = profile2.install
+files[] = profile2.test
