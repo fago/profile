@@ -61,7 +61,7 @@ function profile2_permission() {
   return array(
     'administer profiles' =>  array(
       'title' => t('Administer profiles'),
-      'description' => t('Manage user profiles.'),
+      'description' => t('Create and delete fields on user profiles, and set their permissions.'),
     ),
   );
 }
