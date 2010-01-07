@@ -31,7 +31,7 @@ function profile2_overview_types() {
   }
 
   if (empty($rows)) {
-    $rows[] = array(array('data' => t('No profile types available. <a href="@link">Add profile type</a>.', array('@link' => url('admin/structure/profiles/add'))), 'colspan' => '5', 'class' => array('message')));
+    $rows[] = array(array('data' => t('No profiles available. <a href="@link">Add a profile</a>.', array('@link' => url('admin/structure/profiles/add'))), 'colspan' => '5', 'class' => array('message')));
   }
 
   $build['profile_table'] = array(

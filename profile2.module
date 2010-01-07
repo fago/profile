@@ -46,8 +46,8 @@ function profile2_entity_info() {
 function profile2_menu() {
   // Profile types admin UI
   $items['admin/structure/profiles'] = array(
-    'title' => 'Profile types',
-    'description' => 'Manage profiles by type, including fields, permissions, visibility.',
+    'title' => 'Profiles',
+    'description' => 'Manage profiles, including fields, permissions, visibility.',
     'page callback' => 'profile2_overview_types',
     'access arguments' => array('administer profiles'),
     'file' => 'profile2.admin.inc',
@@ -58,7 +58,7 @@ function profile2_menu() {
     'weight' => -10,
   );
   $items['admin/structure/profiles/add'] = array(
-    'title' => 'Add profile type',
+    'title' => 'Add a profile',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('profile2_type_form'),
     'access arguments' => array('administer profiles'),
