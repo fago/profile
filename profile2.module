@@ -426,8 +426,15 @@ function profile2_attach_form(&$form, &$form_state) {
   if (empty($form['#builder_function'])) {
     $form['#builder_function'] = 'profile2_form_submit_builder';
   }
+  // Make sure $form['#fields'] is set at the top level of $form.
+  $form += array('#fields' => array());
   foreach ($form_state['storage']['profiles'] as $name => $profile) {
-    field_attach_form('profile', $profile, $form, $form_state);
+    field_attach_form('profile', $profile, $form['profile_' . $profile->name], $form_state);
+    $form['#fields'] += $form['profile_' . $profile->name]['#fields'];
+    // Fix the form path so that field AHAH callbacks are working.
+    foreach ($form['profile_' . $profile->name]['#fields'] as $fieldname => $info) {
+      array_unshift($form['#fields'][$fieldname]['form_path'], 'profile_' . $profile->name);
+    }
   }
   $form['#validate'][] = 'profile2_form_validate_handler';
   $form['#submit'][] = 'profile2_form_submit_handler';
