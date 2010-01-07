@@ -18,10 +18,10 @@ function profile2_overview_types() {
   foreach($types as $id => $type) {
     $type_url_str = str_replace('_', '-', $id);
 
-    $row[] = array('data' => theme('profile2_admin_type', array('label' => $type['label'], 'type' => $type)));
+    $row[] = array('data' => theme('profile2_admin_type', array('label' => $type->label, 'type' => $type)));
     $row[] = array('data' => l(t('edit'), 'admin/structure/profiles/manage/' . $type_url_str));
     // Set the delete column.
-    if (!$type['locked']) {
+    if (!$type->locked) {
       $row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
     }
     else {
@@ -50,7 +50,7 @@ function theme_profile2_admin_type($variables) {
   $type  = $variables['type'];
 
   $output = check_plain($label);
-  $output .= ' <small> (Machine name: ' . check_plain($type['name']) . ')</small>';
+  $output .= ' <small> (Machine name: ' . check_plain($type->name) . ')</small>';
   // @todo if we add a description column to profile types.
   //$output .= '<div class="description">' . filter_xss_admin($type['description']) . '</div>';
   return $output;
