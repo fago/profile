@@ -436,3 +436,15 @@ function profile2_category_access($account, $profile_name) {
     return $GLOBALS['user']->uid == $account->uid;
   }
 }
+
+/**
+ * Implement hook_theme().
+ */
+function profile2_theme() {
+  return array(
+    'profile_admin_overview' => array(
+      'variables' => array('label' => NULL, 'type' => NULL),
+    ),
+  );
+}
+

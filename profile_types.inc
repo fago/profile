@@ -18,8 +18,7 @@ function profile2_overview_types() {
   foreach($types as $id => $type) {
     $type_url_str = str_replace('_', '-', $id);
 
-    $row = array();
-    $row[] = array('data' => $type['label']);
+    $row[] = array('data' => theme('profile_admin_overview', array('label' => $type['label'], 'type' => $type)));
     $row[] = array('data' => l(t('edit'), 'admin/structure/profiles/manage/' . $type_url_str));
     // Set the delete column.
     if (!$type['locked']) {
@@ -28,8 +27,9 @@ function profile2_overview_types() {
     else {
       $row[] = array('data' => '');
     }
+    
     $rows[] = $row;
-  }  
+  }
 
   if (empty($rows)) {
     $rows[] = array(array('data' => t('No profile types available. <a href="@link">Add profile type</a>.', array('@link' => url('admin/structure/profiles/add'))), 'colspan' => '5', 'class' => array('message')));
@@ -43,4 +43,18 @@ function profile2_overview_types() {
   
   return $build;
 
+}
+
+/**
+ * Theme the label and machine name for the profile type admin list.
+ */
+function theme_profile_admin_overview($variables) {
+  $label = $variables['label'];
+  $type  = $variables['type'];
+
+  $output = check_plain($label);
+  $output .= ' <small> (Machine name: ' . check_plain($type['name']) . ')</small>';
+  // @todo if we add a description column to profile types.
+  //$output .= '<div class="description">' . filter_xss_admin($type['description']) . '</div>';
+  return $output;
 }
