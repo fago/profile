@@ -15,7 +15,7 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
   }
   
   function setUp() {
-    parent::setUp('profile2');
+    parent::setUp('profile2', 'locale');
     
     profile2_type_save(array(
       'name' => 'test',
@@ -34,7 +34,6 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
    * Tests CRUD for a profile related to a user and one unrelated to a user.
    */
   function testCRUD() {
-    return;
     $user1 = $this->drupalCreateUser();
     // Create profiles for the user1 and unrelated to a user.
     profile2_save((object)array('name' => 'test', 'uid' => $user1->uid));
@@ -61,7 +60,7 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     $this->assertEqual($profiles['test2']->pid, $profiles2['test2']->pid, 'Profile successfully updated.');
 
     // Delete a profile type.
-    profile2_type_delete(profile_get_types('test'));
+    profile2_type_delete(profile2_get_types('test'));
   }
   
   /**
