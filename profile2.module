@@ -54,6 +54,7 @@ function profile2_entity_info() {
     'base table' => 'profile_type',
     'fieldable' => FALSE,
     'bundle of' => 'profile',
+    'exportable' => TRUE,
     'object keys' => array(
       'id' => 'id',
       'name' => 'name',
@@ -552,4 +553,17 @@ class ProfileType extends EntityDB {
   public function __construct($values = array()) {
     parent::__construct($values, 'profile_type');
   }
+}
+
+/**
+ * Implement hook_default_profile_type().
+ */
+function profile2_default_profile_type() {
+  $types['main'] = new ProfileType(array(
+      'name' => 'main',
+      'label' => t('Profile'),
+      'weight' => 0,
+      'locked' => TRUE,
+  ));
+  return $types;
 }

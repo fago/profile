@@ -7,41 +7,30 @@
  */
 
 /**
- * Implement hook_enable().
+ * Implement hook_install().
  */
-function profile2_enable() {
-  if (!profile2_get_types('main')) {
-    // Refresh schema cache, needed to let type save work during installation.
-    drupal_get_schema('profile_type', TRUE);
-    
-    profile2_type_save(new ProfileType(array(
-      'name' => 'main',
-      'label' => t('Profile'),
+function profile2_install() {
+  // Auto-create a field for the full name.
+  $field = array(
+    'field_name' => 'profile_fullname',
+    'type' => 'text',
+    'cardinality' => 1,
+    'translatable' => FALSE,
+  );
+  field_create_field($field);
+
+  $instance = array(
+    'object_type' => 'profile',
+    'field_name' => 'profile_fullname',
+    'bundle' => 'main',
+    'label' => 'Full name',
+    'description' => 'Specify your first and last name.',
+    'widget' => array(
+      'type' => 'text_textfield',
       'weight' => 0,
-      'locked' => TRUE,
-    )));
-    // Auto-create a field for the full name.
-    $field = array(
-      'field_name' => 'profile_fullname',
-      'type' => 'text',
-      'cardinality' => 1,
-      'translatable' => FALSE,
-    );
-    field_create_field($field);
-  
-    $instance = array(
-      'object_type' => 'profile',
-      'field_name' => 'profile_fullname',
-      'bundle' => 'main',
-      'label' => 'Full name',
-      'description' => 'Specify your first and last name.',
-      'widget' => array(
-        'type' => 'text_textfield',
-        'weight' => 0,
-      ),
-    );
-    field_create_instance($instance);
-  }
+    ),
+  );
+  field_create_instance($instance);
 }
 
 /**
