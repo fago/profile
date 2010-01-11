@@ -29,9 +29,14 @@ function profile2_entity_info() {
     'profile' => array(
       'label' => t('Profile'),
       'entity class' => 'Profile',
-      'controller class' => 'EntityCRUDController',
+      'controller class' => 'EntityAPIController',
       'base table' => 'profile',
       'fieldable' => TRUE,
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full profile'),
+        ),
+      ),
       'object keys' => array(
         'id' => 'pid',
         'bundle' => 'name',
@@ -42,8 +47,30 @@ function profile2_entity_info() {
       ),
     ),
   );
+  $return['profile_type'] = array(
+    'label' => t('Profile type'),
+    'entity class' => 'ProfileType',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'profile_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'profile',
+    'object keys' => array(
+      'id' => 'id',
+      'name' => 'name',
+    ),
+  );
+  return $return;
+}
+
+/**
+ * Implement hook_entity_info_alter().
+ *
+ * Use this hook to specify profile bundles to avoid a recursion, as loading
+ * the profile types needs the entity info too.
+ */
+function profile2_entity_info_alter(&$entity_info) {
   foreach (profile2_get_types() as $name => $info) {
-    $return['profile']['bundles'][$name] = array(
+    $entity_info['profile']['bundles'][$name] = array(
       'label' => $info->label,
       'admin' => array(
         'path' => 'admin/structure/profiles/manage/%profile_type',
@@ -53,7 +80,6 @@ function profile2_entity_info() {
       ),
     );
   }
-  return $return;
 }
 
 /**
@@ -145,24 +171,11 @@ function profile2_permission() {
  *
  * @param $name
  *   If set, the type with the given name is returned.
+ * @return ProfileType[]
+ *   Depending whether $name isset, an array of profile types or a single one.
  */
 function profile2_get_types($name = NULL) {
-  $types = drupal_static(__FUNCTION__);
-  if (!isset($types)) {
-    $types = db_select('profile_type', 'pt')
-      ->fields('pt')
-      ->orderBy('name')
-      ->execute()
-      ->fetchAllAssoc('name');
-    foreach ($types as &$type) {
-      $data = unserialize($type->data);
-      unset($type->data);
-      $type = (object)((array)$type + (array)$data + array(
-        'user_category' => TRUE,
-        'user_view' => TRUE,
-      ));
-    }
-  }
+  $types = entity_load('profile_type', isset($name) ? array($name) : FALSE);
   if (isset($name)) {
     return isset($types[$name]) ? $types[$name] : FALSE;
   }
@@ -248,7 +261,7 @@ function profile2_load_by_user($account, $name = NULL) {
 /**
  * Deletes a profile
  */
-function profile2_delete($profile) {
+function profile2_delete(Profile $profile) {
   $profile->delete();
 }
 
@@ -285,47 +298,31 @@ function profile_create(array $values) {
  * @param $profile
  *   The profile object.
  */
-function profile2_save($profile) {
+function profile2_save(Profile $profile) {
   return $profile->save();
 }
 
 /**
  * Saves a profile type to the db.
- *
- * @param $type
- *   An array of information about the type.
  */
-function profile2_type_save($type) {
-  $types = profile2_get_types();
-  // Save all additional properties to the 'data' field.
-  $data = (array)$type;
-  unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['data']);
-  $type->data = $data;
+function profile2_type_save(ProfileType $type) {
+  $type->save();
+}
 
-  if (isset($types[$type->name])) {
-    // We don't support renaming types.
-    drupal_write_record('profile_type', $type, 'name');
-    module_invoke_all('profile_type_update', $type);
-  }
-  else {
-    drupal_write_record('profile_type', $type);
-    field_attach_create_bundle('profile',$type->name);
-    module_invoke_all('profile_type_insert', $type);
-  }
-  drupal_static_reset('profile2_get_types');
+/**
+ * Implement hook_profile_type_presave().
+ */
+function profile2_profile_type_presave($type) {
+  $data = get_object_vars($type);
+  unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['data'], $data['userCategory'], $data['userView']);
+  $type->data = $data;
 }
 
 /**
  * Deletes a profile type from.
  */
-function profile2_type_delete($type) {
-  // Delete profiles.
-  $pids = array_keys(profile2_load_multiple(FALSE, array('name' => $type->name)));
-  profile2_delete_multiple($pids);
-  db_delete('profile_type')->condition('name', $type->name)->execute();
-  // Invoke hook.
-  module_invoke_all('profile_type_delete', $type);
-  field_attach_delete_bundle('profile', $type->name);
+function profile2_type_delete(ProfileType $type) {
+  $type->delete();
 }
 
 /**
@@ -342,11 +339,20 @@ function profile2_profile_load($profiles) {
 }
 
 /**
+ * Implement hook_profile_type_delete()
+ */
+function profile2_profile_type_delete($type) {
+  // Delete all profiles of this type.
+  $pids = array_keys(profile2_load_multiple(FALSE, array('name' => $type->name)));
+  profile2_delete_multiple($pids);
+}
+
+/**
  * Implement hook_user_view().
  */
 function profile2_user_view($account) {
   foreach (profile2_get_types() as $name => $profile_type) {
-    if ($profile_type->user_view && ($profile = profile2_load_by_user($account, $name))) {
+    if ($profile_type->userView && ($profile = profile2_load_by_user($account, $name))) {
       $account->content['profile_' . $name] = array(
         '#type' => 'user_profile_category',
         '#title' => $profile->label,
@@ -357,24 +363,13 @@ function profile2_user_view($account) {
 }
 
 /**
- * Implement hook_field_build_modes().
- */
-function profile2_field_build_modes($obj_type) {
-  if ($obj_type == 'profile') {
-    return array(
-      'full' => t('Full profile'),
-    );
-  }
-}
-
-/**
  * Implement hook_form_FORM_ID_alter() for the user edit form.
  *
  * @see profile2_form_validate_handler
  * @see profile2_form_submit_handler
  */
 function profile2_form_user_profile_form_alter(&$form, &$form_state) {
-  if (($type = profile2_get_types($form['#user_category'])) && $type->user_category) {
+  if (($type = profile2_get_types($form['#user_category'])) && $type->userCategory) {
     if (empty($form_state['profiles'])) {
       $profile = profile2_load_by_user($form['#user'], $form['#user_category']);
       if (empty($profile)) {
@@ -491,7 +486,7 @@ function profile2_form_submit_handler(&$form, &$form_state) {
 function profile2_user_categories() {
   $data = array();
   foreach (profile2_get_types() as $name => $type) {
-    if ($type->user_category) {
+    if ($type->userCategory) {
       $data[] = array(
         'name' => $name,
         'title' => $type->label,
@@ -534,5 +529,27 @@ class Profile extends EntityDB {
   
   public function __construct($values = array()) {
     parent::__construct($values, 'profile');
+  }
+}
+
+/**
+ * Use a separate class for profile types so we can specify some defaults
+ * modules may alter.
+ */
+class ProfileType extends EntityDB {
+  
+  /**
+   * Whether the profile type appears in the user categories.
+   */
+  public $userCategory = TRUE;
+  
+  /**
+   * Whether the profile is displayed on the user account page.
+   */
+  public $userView = TRUE;
+  
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'profile_type');
   }
 }

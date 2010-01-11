@@ -14,12 +14,12 @@ function profile2_enable() {
     // Refresh schema cache, needed to let type save work during installation.
     drupal_get_schema('profile_type', TRUE);
     
-    profile2_type_save((object)array(
+    profile2_type_save(new ProfileType(array(
       'name' => 'main',
       'label' => t('Profile'),
       'weight' => 0,
       'locked' => TRUE,
-    ));
+    )));
     // Auto-create a field for the full name.
     $field = array(
       'field_name' => 'profile_fullname',
@@ -91,6 +91,11 @@ function profile2_schema() {
   $schema['profile_type'] = array(
     'description' => 'Stores information about all defined profile types.',
     'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique profile type ID.',
+      ),
       'name' => array(
         'description' => 'The machine-readable name of this profile type.',
         'type' => 'varchar',
@@ -123,10 +128,14 @@ function profile2_schema() {
         'not null' => FALSE,
         'size' => 'big',
         'serialize' => TRUE,
+        'merge' => TRUE,
         'description' => 'A serialized array of additional data related to this profile type.',
       ),
     ),
-    'primary key' => array('name'),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
   );
   return $schema;
 }

@@ -17,16 +17,16 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
   function setUp() {
     parent::setUp('profile2', 'locale');
     
-    profile2_type_save((object)array(
+    profile2_type_save(new ProfileType(array(
       'name' => 'test',
       'label' => 'label',
       'weight' => 0
-    ));
-    profile2_type_save((object)array(
+    )));
+    profile2_type_save(new ProfileType(array(
       'name' => 'test2',
       'label' => 'label2',
       'weight' => 2
-    ));
+    )));
     profile2_load_multiple(FALSE, array(), TRUE);
   }
   
