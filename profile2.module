@@ -6,6 +6,21 @@
  * Support for configurable user profiles.
  */
 
+spl_autoload_register('profile2_autoload');
+
+/**
+ * Autoload API includes. Note that the code registry autoload is used only
+ * by the providing API module.
+ */
+function profile2_autoload($class) {
+  if (stripos($class, 'faces') === 0) {
+    module_load_include('inc', 'profile2', 'faces');
+  }
+  if (stripos($class, 'entity') === 0) {
+    module_load_include('inc', 'profile2', 'entity');
+  }
+}
+
 /**
  * Implement hook_entity_info().
  */
@@ -13,7 +28,8 @@ function profile2_entity_info() {
   $return = array(
     'profile' => array(
       'label' => t('Profile'),
-      'controller class' => 'DrupalDefaultEntityController',
+      'entity class' => 'Profile',
+      'controller class' => 'EntityCRUDController',
       'base table' => 'profile',
       'fieldable' => TRUE,
       'object keys' => array(
@@ -233,14 +249,7 @@ function profile2_load_by_user($account, $name = NULL) {
  * Deletes a profile
  */
 function profile2_delete($profile) {
-  db_delete('profile')->condition('pid', $profile->pid)->execute();
-  // Invoke hook.
-  field_attach_delete('profile', $profile);
-  module_invoke_all('profile_delete', $profile);
-  
-  // Clear caches.
-  entity_get_controller('profile')->resetCache();
-  drupal_static_reset('profile2_load_by_user');
+  $profile->delete();
 }
 
 /**
@@ -250,19 +259,7 @@ function profile2_delete($profile) {
  *   An array of profile IDs.
  */
 function profile2_delete_multiple(array $pids) {
-  $profiles = profile2_load_multiple($pids);
-
-  db_delete('profile')
-    ->condition('pid', $pids, 'IN')
-    ->execute();
-
-  foreach ($profiles as $profile) {
-    field_attach_delete('profile', $profile);
-    module_invoke_all('profile_delete', $profile);
-  }
-  // Clear caches.
-  entity_get_controller('profile')->resetCache();
-  drupal_static_reset('profile2_load_by_user');
+  entity_get_controller('profile')->delete($pids);
 }
 
 /**
@@ -279,7 +276,7 @@ function profile2_user_cancel(&$edit, $account, $method) {
  * Create a new profile object.
  */
 function profile_create(array $values) {
-  return (object)$values;
+  return new Profile($values);
 }
 
 /**
@@ -289,20 +286,7 @@ function profile_create(array $values) {
  *   The profile object.
  */
 function profile2_save($profile) {
-  field_attach_presave('profile', $profile);
-  module_invoke_all('profile2_presave', $profile);
-
-  if (!empty($profile->pid)) {
-    $return = drupal_write_record('profile', $profile, 'pid');
-    field_attach_update('profile', $profile);
-    module_invoke_all('profile2_update', $profile);
-  }
-  else {
-    $return = drupal_write_record('profile', $profile);
-    field_attach_insert('profile', $profile);
-    module_invoke_all('profile2_insert', $profile);
-  }
-  return $return;
+  return $profile->save();
 }
 
 /**
@@ -546,3 +530,9 @@ function profile2_theme() {
   );
 }
 
+class Profile extends EntityDB {
+  
+  public function __construct($values = array()) {
+    parent::__construct($values, 'profile');
+  }
+}
