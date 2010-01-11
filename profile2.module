@@ -315,7 +315,7 @@ function profile2_type_save(ProfileType $type) {
  */
 function profile2_profile_type_presave($type) {
   $data = get_object_vars($type);
-  unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['data'], $data['userCategory'], $data['userView']);
+  unset($data['name'], $data['label'], $data['weight'], $data['locked'], $data['data'], $data['userCategory'], $data['userView'], $data['status']);
   $type->data = $data;
 }
 
