@@ -11,7 +11,7 @@ if (!interface_exists('FacesExtendableInterface', FALSE)) {
    * Interface for extendable objects.
    */
   interface FacesExtendableInterface {
-  
+
     /**
      * Extend the object by a class to implement the given interfaces.
      *
@@ -26,7 +26,7 @@ if (!interface_exists('FacesExtendableInterface', FALSE)) {
      *   required as 'type' defaults to 'inc' and 'name' to NULL.
      */
     public function extendByClass($interface, $class, array $include = array());
-  
+
     /**
      * Extend the object by the given functions to implement the given
      * interface. There has to be an implementation function for each method of
@@ -45,8 +45,8 @@ if (!interface_exists('FacesExtendableInterface', FALSE)) {
      *   describe a single file.
      */
     public function extend($interface, array $methods = array(), array $includes = array());
-  
-  
+
+
     /**
      * Override the implementation of an extended method.
      *
@@ -62,7 +62,7 @@ if (!interface_exists('FacesExtendableInterface', FALSE)) {
      *   describe a single file.
      */
     public function override(array $methods = array(), array $includes = array());
-  
+
     /**
      * Returns whether the object can face as the given interface, thus it returns
      * TRUE if this oject has been extended by an appropriate implementation.
@@ -74,20 +74,20 @@ if (!interface_exists('FacesExtendableInterface', FALSE)) {
      *   Whether the object can face as the interface or an array of interface names.
      */
     public function facesAs($interface = NULL);
-  
+
   }
-  
+
   /**
    * Interface for extenders.
    */
   interface FacesExtenderInterface {
-  
+
     /**
      * Returns an array of interface names the extender implements dynamically.
      */
     function implementsFaces();
   }
-  
+
   /**
    * The Exception thrown by the FacesExtendable.
    */
@@ -209,6 +209,7 @@ abstract class FacesExtendable extends FacesRoot implements FacesExtendableInter
         throw new FacesExtendableException("The class " . check_plain($className) . " doesn't implement the interface " . check_plain($interface) . ".");
       }
       $this->faces[$interface] = $interface;
+      $this->faces += class_implements($interface);
       $face_methods = get_class_methods($interface);
       $this->addIncludes($face_methods, $includes);
       foreach ($face_methods as $method) {
@@ -226,6 +227,7 @@ abstract class FacesExtendable extends FacesRoot implements FacesExtendableInter
       throw new FacesExtendableException("Missing methods for implementing the interface " . check_plain($interface) . ".");
     }
     $this->faces[$interface] = $interface;
+    $this->faces += class_implements($interface);
     $this->addIncludes($face_methods, $includes);
     foreach ($face_methods as $method) {
       $this->facesMethods[$method] = array(0 => $callbacks[$method]);
@@ -253,7 +255,7 @@ abstract class FacesExtendable extends FacesRoot implements FacesExtendableInter
     $includes = isset($includes['module']) && is_string($includes['module']) ? array_fill_keys($methods, $includes) : $includes;
     $this->facesIncludes = $includes + array_diff_key($this->facesIncludes, array_flip($methods));
   }
-  
+
   /**
    * Only serialize what is really necessary.
    */
