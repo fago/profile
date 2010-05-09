@@ -6,21 +6,6 @@
  * Support for configurable user profiles.
  */
 
-spl_autoload_register('profile2_autoload');
-
-/**
- * Autoload API includes. Note that the code registry autoload is used only
- * by the providing API module.
- */
-function profile2_autoload($class) {
-  if (stripos($class, 'faces') === 0) {
-    module_load_include('inc', 'profile2', 'faces');
-  }
-  if (stripos($class, 'entity') === 0) {
-    module_load_include('inc', 'profile2', 'entity');
-  }
-}
-
 /**
  * Implement hook_entity_info().
  */
@@ -537,7 +522,7 @@ class Profile extends EntityDB {
  * Use a separate class for profile types so we can specify some defaults
  * modules may alter.
  */
-class ProfileType extends EntityDB {
+class ProfileType extends EntityDBExtendable {
   
   /**
    * Whether the profile type appears in the user categories.
