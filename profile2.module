@@ -7,7 +7,7 @@
  */
 
 /**
- * Implement hook_entity_info().
+ * Implements hook_entity_info().
  */
 function profile2_entity_info() {
   $return = array(
@@ -49,7 +49,7 @@ function profile2_entity_info() {
 }
 
 /**
- * Implement hook_entity_info_alter().
+ * Implements hook_entity_info_alter().
  *
  * Use this hook to specify profile bundles to avoid a recursion, as loading
  * the profile types needs the entity info too.
@@ -69,7 +69,7 @@ function profile2_entity_info_alter(&$entity_info) {
 }
 
 /**
- * Implement hook_menu().
+ * Implements hook_menu().
  */
 function profile2_menu() {
   // Profile types admin UI
@@ -141,7 +141,7 @@ function profile2_type_page_title($type) {
 }
 
 /**
- * Implement hook_permission().
+ * Implements hook_permission().
  */
 function profile2_permission() {
   return array(
@@ -262,7 +262,7 @@ function profile2_delete_multiple(array $pids) {
 }
 
 /**
- * Implement hook_user_cancel().
+ * Implements hook_user_cancel().
  */
 function profile2_user_cancel(&$edit, $account, $method) {
   // Delete all profiles of the user in any case.
@@ -296,7 +296,7 @@ function profile2_type_save(ProfileType $type) {
 }
 
 /**
- * Implement hook_profile_type_presave().
+ * Implements hook_profile_type_presave().
  */
 function profile2_profile_type_presave($type) {
   $data = get_object_vars($type);
@@ -312,7 +312,7 @@ function profile2_type_delete(ProfileType $type) {
 }
 
 /**
- * Implement hook_profile_load()
+ * Implements hook_profile_load()
  */
 function profile2_profile_load($profiles) {
   $types = profile2_get_types();
@@ -325,7 +325,7 @@ function profile2_profile_load($profiles) {
 }
 
 /**
- * Implement hook_profile_type_delete()
+ * Implements hook_profile_type_delete()
  */
 function profile2_profile_type_delete($type) {
   // Delete all profiles of this type.
@@ -334,7 +334,7 @@ function profile2_profile_type_delete($type) {
 }
 
 /**
- * Implement hook_user_view().
+ * Implements hook_user_view().
  */
 function profile2_user_view($account) {
   foreach (profile2_get_types() as $name => $profile_type) {
@@ -349,7 +349,7 @@ function profile2_user_view($account) {
 }
 
 /**
- * Implement hook_form_FORM_ID_alter() for the user edit form.
+ * Implements hook_form_FORM_ID_alter() for the user edit form.
  *
  * @see profile2_form_validate_handler
  * @see profile2_form_submit_handler
@@ -368,7 +368,7 @@ function profile2_form_user_profile_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Implement hook_form_FORM_ID_alter() for the registration form.
+ * Implements hook_form_FORM_ID_alter() for the registration form.
  */
 function profile2_form_user_register_form_alter(&$form, &$form_state) {
   $name = variable_get('profile2_register', 'main');
@@ -459,7 +459,7 @@ function profile2_form_submit_handler(&$form, &$form_state) {
 }
 
 /**
- * Implement hook_user_categories().
+ * Implements hook_user_categories().
  */
 function profile2_user_categories() {
   $data = array();
@@ -493,7 +493,7 @@ function profile2_category_access($account, $profile_name) {
 }
 
 /**
- * Implement hook_theme().
+ * Implements hook_theme().
  */
 function profile2_theme() {
   return array(
@@ -536,7 +536,7 @@ class ProfileType extends EntityDBExtendable {
 }
 
 /**
- * Implement hook_default_profile_type().
+ * Implements hook_default_profile_type().
  */
 function profile2_default_profile_type() {
   $types['main'] = new ProfileType(array(

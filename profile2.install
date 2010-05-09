@@ -7,7 +7,7 @@
  */
 
 /**
- * Implement hook_install().
+ * Implements hook_install().
  */
 function profile2_install() {
   // Auto-create a field for the full name, if it doesn't exist yet.
@@ -35,14 +35,14 @@ function profile2_install() {
 }
 
 /**
- * Implement hook_uninstall().
+ * Implements hook_uninstall().
  */
 function profile2_uninstall() {
   variable_del('profile_register');
 }
 
 /**
- * Implement hook_schema().
+ * Implements hook_schema().
  */
 function profile2_schema() {
   $schema['profile'] = array(
