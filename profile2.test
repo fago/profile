@@ -77,8 +77,9 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     $edit['profile_fullname[und][0][value]'] = $this->randomName();
     $this->drupalPost('user/register', $edit, t('Create new account'));
-    $this->assertText(t('Your password and further instructions have been sent to your e-mail address.'), t('User registered successfully.'));
-    $new_user = reset(user_load_multiple(array(), array('name' => $name, 'mail' => $mail)));
+    $this->assertText(t('A welcome message with further instructions has been sent to your e-mail address.'), t('User registered successfully.'));
+    $return = user_load_multiple(array(), array('name' => $name, 'mail' => $mail));
+    $new_user = reset($return);
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
     $this->assertEqual(profile2_load_by_user($new_user, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_fullname[und][0][value]'], 'Profile created.');
   }
