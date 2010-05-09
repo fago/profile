@@ -22,7 +22,7 @@ function profile2_entity_info() {
           'label' => t('Full profile'),
         ),
       ),
-      'object keys' => array(
+      'entity keys' => array(
         'id' => 'pid',
         'bundle' => 'name',
       ),
@@ -40,7 +40,7 @@ function profile2_entity_info() {
     'fieldable' => FALSE,
     'bundle of' => 'profile',
     'exportable' => TRUE,
-    'object keys' => array(
+    'entity keys' => array(
       'id' => 'id',
       'name' => 'name',
     ),
