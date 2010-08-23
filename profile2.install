@@ -1,5 +1,5 @@
 <?php
-// $Id: profile.install,v 1.22 2009-09-29 15:13:56 dries Exp $
+// $Id$
 
 /**
  * @file
@@ -7,21 +7,11 @@
  */
 
 /**
- * Implement hook_enable().
+ * Implements hook_install().
  */
-function profile2_enable() {
-  if (!profile2_get_types('main')) {
-    // Refresh schema cache, needed to let type save work during installation.
-    drupal_get_schema('profile_type', TRUE);
-    
-    profile2_type_save((object)array(
-      'name' => 'main',
-      'label' => t('Profile'),
-      'weight' => 0,
-      'multiple' => FALSE,
-      'locked' => TRUE,
-    ));
-    // Auto-create a field for the full name.
+function profile2_install() {
+  // Auto-create a field for the full name, if it doesn't exist yet.
+  if (!field_info_field('profile_fullname')) {
     $field = array(
       'field_name' => 'profile_fullname',
       'type' => 'text',
@@ -29,31 +19,30 @@ function profile2_enable() {
       'translatable' => FALSE,
     );
     field_create_field($field);
-  
-    $instance = array(
-      'object_type' => 'profile',
-      'field_name' => 'profile_fullname',
-      'bundle' => 'main',
-      'label' => 'Full name',
-      'description' => 'Specify your first and last name.',
-      'widget' => array(
-        'type' => 'text_textfield',
-        'weight' => 0,
-      ),
-    );
-    field_create_instance($instance);
   }
+  $instance = array(
+    'entity_type' => 'profile',
+    'field_name' => 'profile_fullname',
+    'bundle' => 'main',
+    'label' => 'Full name',
+    'description' => 'Specify your first and last name.',
+    'widget' => array(
+      'type' => 'text_textfield',
+      'weight' => 0,
+    ),
+  );
+  field_create_instance($instance);
 }
 
 /**
- * Implement hook_uninstall().
+ * Implements hook_uninstall().
  */
 function profile2_uninstall() {
   variable_del('profile_register');
 }
 
 /**
- * Implement hook_schema().
+ * Implements hook_schema().
  */
 function profile2_schema() {
   $schema['profile'] = array(
@@ -92,6 +81,11 @@ function profile2_schema() {
   $schema['profile_type'] = array(
     'description' => 'Stores information about all defined profile types.',
     'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique profile type ID.',
+      ),
       'name' => array(
         'description' => 'The machine-readable name of this profile type.',
         'type' => 'varchar',
@@ -119,22 +113,19 @@ function profile2_schema() {
         'default' => 0,
         'size' => 'tiny',
       ),
-      'multiple' => array(
-        'description' => 'A boolean indicating whether one profile set may content more than one profile item of this type.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'size' => 'tiny',
-      ),
       'data' => array(
         'type' => 'text',
         'not null' => FALSE,
         'size' => 'big',
         'serialize' => TRUE,
+        'merge' => TRUE,
         'description' => 'A serialized array of additional data related to this profile type.',
       ),
     ),
-    'primary key' => array('name'),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
   );
   return $schema;
 }
