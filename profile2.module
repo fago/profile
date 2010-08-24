@@ -149,6 +149,21 @@ function profile2_permission() {
       'title' => t('Administer profiles'),
       'description' => t('Create and delete fields on user profiles, and set their permissions.'),
     ),
+    'view own profile' =>  array(
+      'title' => t('View own profile'),
+      'description' => t('View the profile that is associated with their account.'),
+    ),
+    'edit own profile' =>  array(
+      'title' => t('Edit own profile'),
+      'description' => t('Edit profiles that are not associated with their account.'),
+    ),
+    'edit other profiles' =>  array(
+      'title' => t('Edit other profiles'),
+      'description' => t('Edit profiles that are not associated with their account.'),
+    ),
+    // per-type permissions:
+    // - edit
+    // - view
   );
 }
 
