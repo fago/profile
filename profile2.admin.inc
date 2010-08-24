@@ -64,10 +64,15 @@ function profile2_type_form($form, &$form_state, $type = NULL) {
     // This is a new type.
     $type = profile2_type_set_defaults(array());
   }
-  
-  $form['identity'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Identification'),
+
+  $form['name'] = array(
+    '#title' => t('Name'),
+    '#type' => 'textfield',
+    '#default_value' => $type->label,
+    '#description' => t('The human-readable name of this profile type. This text will be displayed as part of the list on the <em>TO DO</em> page. It is recommended that this name begin with a capital letter and contain only letters, numbers, and spaces. This name must be unique.'),
+    '#required' => TRUE,
+    '#size' => 30,
+    '#field_suffix' => ' <small id="edit-name-suffix">' . ($type->locked ? t('Machine name: @name', array('@name' => $type->name)) : '&nbsp;') . '</small>',
   );
   
   return $form;
