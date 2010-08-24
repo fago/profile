@@ -65,6 +65,9 @@ function profile2_type_form($form, &$form_state, $type = NULL) {
     $type = profile2_type_set_defaults(array());
   }
 
+  // Make the type object available to implementations of hook_form_alter.
+  $form['#profile_type'] = $type;
+
   $form['name'] = array(
     '#title' => t('Name'),
     '#type' => 'textfield',
