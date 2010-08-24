@@ -74,7 +74,7 @@ function profile2_entity_info_alter(&$entity_info) {
 function profile2_menu() {
   // Profile types admin UI
   $items['admin/structure/profiles'] = array(
-    'title' => 'Profiles',
+    'title' => 'Profile types',
     'description' => 'Manage profiles, including fields, permissions, visibility.',
     'page callback' => 'profile2_overview_types',
     'access arguments' => array('administer profiles'),
@@ -144,9 +144,9 @@ function profile2_type_page_title($type) {
  * Implements hook_permission().
  */
 function profile2_permission() {
-  return array(
-    'administer profiles' =>  array(
-      'title' => t('Administer profiles'),
+  $permissions = array(
+    'administer profile types' =>  array(
+      'title' => t('Administer profile types'),
       'description' => t('Create and delete fields on user profiles, and set their permissions.'),
     ),
     'view own profile' =>  array(
@@ -165,6 +165,8 @@ function profile2_permission() {
     // - edit
     // - view
   );
+
+  return $permissions;
 }
 
 /**
