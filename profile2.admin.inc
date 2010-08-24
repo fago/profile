@@ -61,9 +61,8 @@ function theme_profile2_admin_type($variables) {
  */
 function profile2_type_form($form, &$form_state, $type = NULL) {
   if (!isset($type->name)) {
-    // @todo!
-    // This is a new type. Node module managed types are custom and unlocked.
-    //$type = node_type_set_defaults(array('custom' => 1, 'locked' => 0));
+    // This is a new type.
+    $type = profile2_type_set_defaults(array());
   }
   
   $form['identity'] = array(
