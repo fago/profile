@@ -86,7 +86,7 @@ function profile2_menu() {
     'weight' => -10,
   );
   $items['admin/structure/profiles/add'] = array(
-    'title' => 'Add a profile',
+    'title' => 'Add a profile type',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('profile2_type_form'),
     'access arguments' => array('administer profiles'),
