@@ -151,7 +151,7 @@ function profile2_permission() {
     ),
     'administer profiles' =>  array(
       'title' => t('Administer profiles'),
-      'description' => t('.'),
+      'description' => t('Edit and view all user profiles.'),
     ),
     // per-type permissions:
     // - edit
