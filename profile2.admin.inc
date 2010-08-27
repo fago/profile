@@ -77,6 +77,23 @@ function profile2_type_form($form, &$form_state, $type = NULL) {
     '#size' => 30,
     '#field_suffix' => ' <small id="edit-name-suffix">' . ($type->locked ? t('Machine name: @name', array('@name' => $type->name)) : '&nbsp;') . '</small>',
   );
-  
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save profile type'),
+    '#weight' => 40,
+  );
+
+  if (!$type->locked) {
+    if (!empty($type->name)) {
+      $form['actions']['delete'] = array(
+        '#type' => 'submit',
+        '#value' => t('Delete profile type'),
+        '#weight' => 45,
+      );
+    }
+  }
+
   return $form;
 }
