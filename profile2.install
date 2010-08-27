@@ -53,8 +53,8 @@ function profile2_schema() {
         'not null' => TRUE,
         'description' => 'Primary Key: Unique profile item ID.',
       ),
-      'name' => array(
-        'description' => 'The name of the profile.',
+      'type' => array(
+        'description' => 'The {profile_type}.type of this node.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
@@ -73,7 +73,7 @@ function profile2_schema() {
     ),
     'foreign keys' => array(
       'uid' => array('users' => 'uid'),
-      'name' => array('profile_types' => 'name'),
+      'type' => array('profile_type' => 'type'),
     ),
     'primary key' => array('pid'),
   );
@@ -86,7 +86,7 @@ function profile2_schema() {
         'not null' => TRUE,
         'description' => 'Primary Key: Unique profile type ID.',
       ),
-      'name' => array(
+      'type' => array(
         'description' => 'The machine-readable name of this profile type.',
         'type' => 'varchar',
         'length' => 32,
@@ -124,7 +124,7 @@ function profile2_schema() {
     ),
     'primary key' => array('id'),
     'unique keys' => array(
-      'name' => array('name'),
+      'type' => array('type'),
     ),
   );
   return $schema;

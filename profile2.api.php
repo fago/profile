@@ -170,7 +170,7 @@ function hook_profile_type_delete($type) {
  */
 function hook_default_profile_type() {
   $types['main'] = new ProfileType(array(
-      'name' => 'main',
+      'type' => 'main',
       'label' => t('Profile'),
       'weight' => 0,
       'locked' => TRUE,

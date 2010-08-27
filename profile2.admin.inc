@@ -47,10 +47,10 @@ function profile2_overview_types() {
  */
 function theme_profile2_admin_type($variables) {
   $label = $variables['label'];
-  $type  = $variables['type'];
+  $profile_type  = $variables['type'];
 
   $output = check_plain($label);
-  $output .= ' <small> (Machine name: ' . check_plain($type->name) . ')</small>';
+  $output .= ' <small> (Machine name: ' . check_plain($profile_type->type) . ')</small>';
   // @todo if we add a description column to profile types.
   //$output .= '<div class="description">' . filter_xss_admin($type['description']) . '</div>';
   return $output;
@@ -59,23 +59,23 @@ function theme_profile2_admin_type($variables) {
 /**
  * Generates the profile type editing form.
  */
-function profile2_type_form($form, &$form_state, $type = NULL) {
-  if (!isset($type->name)) {
+function profile2_type_form($form, &$form_state, $profile_type = NULL) {
+  if (!isset($profile_type->type)) {
     // This is a new type.
-    $type = profile2_type_set_defaults(array());
+    $profile_type = profile2_type_set_defaults(array());
   }
 
   // Make the type object available to implementations of hook_form_alter.
-  $form['#profile_type'] = $type;
+  $form['#profile_type'] = $profile_type;
 
   $form['name'] = array(
     '#title' => t('Name'),
     '#type' => 'textfield',
-    '#default_value' => $type->label,
+    '#default_value' => $profile_type->label,
     '#description' => t('The human-readable name of this profile type. This text will be displayed as part of the list on the <em>TO DO</em> page. It is recommended that this name begin with a capital letter and contain only letters, numbers, and spaces. This name must be unique.'),
     '#required' => TRUE,
     '#size' => 30,
-    '#field_suffix' => ' <small id="edit-name-suffix">' . ($type->locked ? t('Machine name: @name', array('@name' => $type->name)) : '&nbsp;') . '</small>',
+    '#field_suffix' => ' <small id="edit-name-suffix">' . ($profile_type->locked ? t('Machine name: @name', array('@name' => $profile_type->type)) : '&nbsp;') . '</small>',
   );
 
   $form['actions'] = array('#type' => 'actions');
@@ -85,8 +85,8 @@ function profile2_type_form($form, &$form_state, $type = NULL) {
     '#weight' => 40,
   );
 
-  if (!$type->locked) {
-    if (!empty($type->name)) {
+  if (!$profile_type->locked) {
+    if (!empty($profile_type->type)) {
       $form['actions']['delete'] = array(
         '#type' => 'submit',
         '#value' => t('Delete profile type'),

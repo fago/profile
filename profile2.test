@@ -18,12 +18,12 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     parent::setUp('profile2', 'locale');
     
     profile2_type_save(new ProfileType(array(
-      'name' => 'test',
+      'type' => 'test',
       'label' => 'label',
       'weight' => 0
     )));
     profile2_type_save(new ProfileType(array(
-      'name' => 'test2',
+      'type' => 'test2',
       'label' => 'label2',
       'weight' => 2
     )));
@@ -36,9 +36,9 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
   function testCRUD() {
     $user1 = $this->drupalCreateUser();
     // Create profiles for the user1 and unrelated to a user.
-    profile2_save(profile_create(array('name' => 'test', 'uid' => $user1->uid)));
-    profile2_save(profile_create(array('name' => 'test2', 'uid' => $user1->uid)));
-    $profile = profile_create(array('name' => 'test', 'uid' => NULL));
+    profile2_save(profile_create(array('type' => 'test', 'uid' => $user1->uid)));
+    profile2_save(profile_create(array('type' => 'test2', 'uid' => $user1->uid)));
+    $profile = profile_create(array('type' => 'test', 'uid' => NULL));
     profile2_save($profile);
     
     $profiles = profile2_load_by_user($user1);
