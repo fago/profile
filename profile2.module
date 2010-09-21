@@ -42,7 +42,7 @@ function profile2_entity_info() {
     'exportable' => TRUE,
     'entity keys' => array(
       'id' => 'id',
-      'type' => 'type',
+      'name' => 'type',
     ),
   );
   return $return;
