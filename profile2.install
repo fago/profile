@@ -106,13 +106,6 @@ function profile2_schema() {
         'size' => 'tiny',
         'description' => 'The weight of this profile type in relation to others.',
       ),
-      'locked' => array(
-        'description' => 'A boolean indicating whether the administrator may delete this type.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'size' => 'tiny',
-      ),
       'data' => array(
         'type' => 'text',
         'not null' => FALSE,

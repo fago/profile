@@ -24,7 +24,7 @@ function profile2_overview_types() {
     $row[] = array('data' => l(t('edit'), 'admin/structure/profiles/manage/' . $type_url_str));
 
     // If not locked, add a delete column
-    if (!$type->locked) {
+    if (!$type->isLocked()) {
       $row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
     }
     else {
@@ -80,7 +80,7 @@ function profile2_type_form($form, &$form_state, $profile_type = NULL) {
     '#description' => t('The human-readable name of this profile type. This text will be displayed as part of the list on the <em>TO DO</em> page. It is recommended that this name begin with a capital letter and contain only letters, numbers, and spaces. This name must be unique.'),
     '#required' => TRUE,
     '#size' => 30,
-    '#field_suffix' => ' <small id="edit-name-suffix">' . ($profile_type->locked ? t('Machine name: @name', array('@name' => $profile_type->type)) : '&nbsp;') . '</small>',
+    '#field_suffix' => ' <small id="edit-name-suffix">' . ($profile_type->isLocked() ? t('Machine name: @name', array('@name' => $profile_type->type)) : '&nbsp;') . '</small>',
   );
 
   // Machine-readable type
@@ -95,7 +95,7 @@ function profile2_type_form($form, &$form_state, $profile_type = NULL) {
 
   // If the profile is locked, we don't want people seeing or editing the
   // machine-readable type: no point
-  if ($profile_type->locked) {
+  if ($profile_type->isLocked()) {
     $form['type']['#type'] = 'value';
   }
 
@@ -106,7 +106,7 @@ function profile2_type_form($form, &$form_state, $profile_type = NULL) {
     '#weight' => 40,
   );
 
-  if (!$profile_type->locked) {
+  if (!$profile_type->isLocked()) {
     if (!empty($profile_type->type)) {
       $form['actions']['delete'] = array(
         '#type' => 'submit',
@@ -129,11 +129,11 @@ function profile2_type_form_submit(&$form, &$form_state) {
   // Set the name and, if it's not set (and the type isn't locked)
   // also set the machine-readable profile type
   $profile_type->label = $form_state['values']['name'];
-  if (!$profile_type->locked && empty($profile_type->type)) {
+  if (!$profile_type->isLocked() && empty($profile_type->type)) {
     $profile_type->type = $form_state['values']['type'];
   }
 
   // Save and go back
   $profile_type->save();
-  drupal_goto('admin/structure/profiles');
+  $form_state['redirect'] = 'admin/structure/profiles';
 }

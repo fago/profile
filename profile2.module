@@ -159,16 +159,16 @@ function profile2_permission() {
     $type_name = check_plain($type->type);
     $permissions += array(
       "edit own $type_name profile" => array(
-        'title' => t('Edit own %type_name profile', array('%type_name' => $profile_type->label)),
+        'title' => t('Edit own %type_name profile', array('%type_name' => $type->label)),
       ),
       "edit any $type_name profile" => array(
-        'title' => t('Edit any %type_name profile', array('%type_name' => $profile_type->label)),
+        'title' => t('Edit any %type_name profile', array('%type_name' => $type->label)),
       ),
       "view own $type_name profile" => array(
-        'title' => t('View own %type_name profile', array('%type_name' => $profile_type->label)),
+        'title' => t('View own %type_name profile', array('%type_name' => $type->label)),
       ),
       "view any $type_name profile" => array(
-        'title' => t('View any %type_name profile', array('%type_name' => $profile_type->label)),
+        'title' => t('View any %type_name profile', array('%type_name' => $type->label)),
       ),
     );
   }
@@ -548,8 +548,22 @@ class ProfileType extends EntityDBExtendable {
   public $userView = TRUE;
 
 
+  public $type;
+  public $label;
+  public $weight = 0;
+
   public function __construct($values = array()) {
     parent::__construct($values, 'profile_type');
+  }
+
+  /**
+   * Returns whether the profile type is locked, thus may not be deleted or renamed.
+   *
+   * Profile types provided in code are automatically treated as locked, as well
+   * as any fixed profile type.
+   */
+  public function isLocked() {
+    return isset($this->status) && (($this->status & ENTITY_IN_CODE) || ($this->status & ENTITY_FIXED));
   }
 }
 
@@ -561,7 +575,6 @@ function profile2_default_profile_type() {
       'type' => 'main',
       'label' => t('Profile'),
       'weight' => 0,
-      'locked' => FALSE,
   ));
   return $types;
 }
