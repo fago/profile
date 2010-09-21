@@ -154,35 +154,25 @@ function profile2_permission() {
       'description' => t('Edit and view all user profiles.'),
     ),
   );
-
-  // Generate standard node permissions for all applicable node types.
+  // Generate per profile type permissions.
   foreach (profile2_get_types() as $type) {
-    $permissions += profile2_list_permissions($type);
+    $type_name = check_plain($type->type);
+    $permissions += array(
+      "edit own $type_name profile" => array(
+        'title' => t('Edit own %type_name profile', array('%type_name' => $profile_type->label)),
+      ),
+      "edit any $type_name profile" => array(
+        'title' => t('Edit any %type_name profile', array('%type_name' => $profile_type->label)),
+      ),
+      "view own $type_name profile" => array(
+        'title' => t('View own %type_name profile', array('%type_name' => $profile_type->label)),
+      ),
+      "view any $type_name profile" => array(
+        'title' => t('View any %type_name profile', array('%type_name' => $profile_type->label)),
+      ),
+    );
   }
-
   return $permissions;
-}
-
-function profile2_list_permissions($profile_type) {
-  $type_name = check_plain($profile_type->type);
-
-  // Build standard list of node permissions for this type.
-  $perms = array(
-    "edit own $type_name profile" => array(
-      'title' => t('Edit own %type_name profile', array('%type_name' => $profile_type->label)),
-    ),
-    "edit any $type_name profile" => array(
-      'title' => t('Edit any %type_name profile', array('%type_name' => $profile_type->label)),
-    ),
-    "view own $type_name profile" => array(
-      'title' => t('View own %type_name profile', array('%type_name' => $profile_type->label)),
-    ),
-    "view any $type_name profile" => array(
-      'title' => t('View any %type_name profile', array('%type_name' => $profile_type->label)),
-    ),
-  );
-
-  return $perms;
 }
 
 /**
@@ -425,10 +415,6 @@ function profile2_form_user_register_form_alter(&$form, &$form_state) {
  * @see profile2_form_submit_handler()
  */
 function profile2_attach_form(&$form, &$form_state) {
-  if (empty($form['#builder_function'])) {
-    // TODO: Remove this once it's optional in core.
-    $form['#builder_function'] = 'profile2_form_submit_builder';
-  }
   foreach ($form_state['profiles'] as $type => $profile) {
     $form['profile_' . $profile->type] = array();
     field_attach_form('profile', $profile, $form['profile_' . $profile->type], $form_state);
@@ -436,14 +422,12 @@ function profile2_attach_form(&$form, &$form_state) {
   $form['#validate'][] = 'profile2_form_validate_handler';
   // Extract the form values and clean them up first. This is needed as some
   // submit callbacks like user_register_submit() rely on clean form values.
-  $form['#submit'] = array_merge(
-    array('profile2_form_submit_builder', 'profile2_form_submit_cleanup'),
-    $form['#submit'],
-    array('profile2_form_submit_handler')
-  );
+  $form['#submit'][] = 'profile2_form_submit_handler';
 }
 
 /**
+ * Validation handler for the profile form.
+ *
  * @see profile2_attach_form()
  */
 function profile2_form_validate_handler(&$form, &$form_state) {
@@ -453,38 +437,14 @@ function profile2_form_validate_handler(&$form, &$form_state) {
 }
 
 /**
- * Submit builder. Extracts the form values and updates the entities. Afterwards
- * our form values are removed.
- *
- * This also serves as callback for non-js add-more submits, thus it enables
- * rebuilding.
- *
- * @see profile2_attach_form()
- */
-function profile2_form_submit_builder(&$form, &$form_state) {
-  foreach ($form_state['profiles'] as $type => $profile) {
-    field_attach_submit('profile', $profile, $form, $form_state);
-  }
-  $form_state['rebuild'] = TRUE;
-}
-
-/**
- * Cleans up the form values.
- *
- * @see profile2_attach_form()
- */
-function profile2_form_submit_cleanup(&$form, &$form_state) {
-  foreach ($form_state['field'] as $field_name => $info) {
-    unset($form_state['values'][$field_name]);
-  }
-}
-
-/**
- * Finally save all profiles.
+ * Submit handler that builds and saves all profiles in the form.
  *
  * @see profile2_attach_form()
  */
 function profile2_form_submit_handler(&$form, &$form_state) {
+  profile2_form_submit_build_profile($form, $form_state);
+  profile2_form_submit_cleanup($form, $form_state);
+
   foreach ($form_state['profiles'] as $type => $profile) {
     // During registration set the uid field of the newly created user.
     if (empty($profile->uid) && isset($form_state['user']->uid)) {
@@ -492,7 +452,28 @@ function profile2_form_submit_handler(&$form, &$form_state) {
     }
     profile2_save($profile);
   }
-  unset($form_state['rebuild']);
+}
+
+/**
+ * Submit builder. Extracts the form values and updates the entities.
+ *
+ * @see profile2_attach_form()
+ */
+function profile2_form_submit_build_profile(&$form, &$form_state) {
+  foreach ($form_state['profiles'] as $type => $profile) {
+    entity_form_submit_build_entity('profile', $profile, $form, $form_state);
+  }
+}
+
+/**
+ * Cleans up the form values as the user modules relies on clean values.
+ *
+ * @see profile2_attach_form()
+ */
+function profile2_form_submit_cleanup(&$form, &$form_state) {
+  foreach ($form_state['field'] as $field_name => $info) {
+    unset($form_state['values'][$field_name]);
+  }
 }
 
 /**
