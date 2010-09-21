@@ -323,15 +323,6 @@ function profile2_type_save(ProfileType $type) {
 }
 
 /**
- * Implements hook_profile_type_presave().
- */
-function profile2_profile_type_presave($type) {
-  $data = get_object_vars($type);
-  unset($data['type'], $data['label'], $data['weight'], $data['locked'], $data['data'], $data['userCategory'], $data['userView'], $data['status']);
-  $type->data = $data;
-}
-
-/**
  * Deletes a profile type from.
  */
 function profile2_type_delete(ProfileType $type) {
