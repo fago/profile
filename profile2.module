@@ -18,8 +18,8 @@ function profile2_entity_info() {
       'base table' => 'profile',
       'fieldable' => TRUE,
       'view modes' => array(
-        'full' => array(
-          'label' => t('Full profile'),
+        'account' => array(
+          'label' => t('User account'),
         ),
       ),
       'entity keys' => array(
@@ -380,7 +380,7 @@ function profile2_user_view($account) {
         '#type' => 'user_profile_category',
         '#title' => $profile->label,
       );
-      $account->content['profile_' . $type] += field_attach_view('profile', $profile, 'full');
+      $account->content['profile_' . $type] += field_attach_view('profile', $profile, 'account');
     }
   }
 }
