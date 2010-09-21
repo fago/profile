@@ -380,7 +380,7 @@ function profile2_user_view($account) {
         '#type' => 'user_profile_category',
         '#title' => $profile->label,
       );
-      $account->content['profile_' . $type] += field_attach_view('profile', $profile);
+      $account->content['profile_' . $type] += field_attach_view('profile', $profile, 'full');
     }
   }
 }
