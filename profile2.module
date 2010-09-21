@@ -257,7 +257,7 @@ function profile2_load_by_user($account, $type = NULL) {
   // of the entity loader.
   $cache = drupal_static(__FUNCTION__, array());
   $uid = is_object($account) ? $account->uid : $account;
-  
+
   if (!isset($cache[$uid])) {
     if (empty($type)) {
       $profiles = profile2_load_multiple(array(), array('uid' => $uid));
@@ -346,37 +346,6 @@ function profile2_profile_type_presave($type) {
  */
 function profile2_type_delete(ProfileType $type) {
   $type->delete();
-}
-
-/**
- * Set the default values for a profile type.
- *
- * @param $info
- *   An object or array containing values to override the defaults.
- *
- * @return
- *  A node type object.
- */
-function profile2_type_set_defaults($info = array()) {
-  $type = &drupal_static(__FUNCTION__);
-
-  if (!isset($type)) {
-    $type = new stdClass();
-    $type->type = '';
-    $type->label = '';
-    $type->weight = 0;
-    $type->locked = 0;
-    $type->multiple = 0;
-    $type->data = '';
-  }
-
-  $new_type = clone $type;
-  $info = (array) $info;
-  foreach ($info as $key => $data) {
-    $new_type->$key = $data;
-  }
-
-  return $new_type;
 }
 
 /**
@@ -575,7 +544,7 @@ function profile2_theme() {
  * The class used for profile entities.
  */
 class Profile extends EntityDBExtendable {
-  
+
   public function __construct($values = array()) {
     parent::__construct($values, 'profile');
   }
@@ -586,17 +555,17 @@ class Profile extends EntityDBExtendable {
  * modules may alter.
  */
 class ProfileType extends EntityDBExtendable {
-  
+
   /**
    * Whether the profile type appears in the user categories.
    */
   public $userCategory = TRUE;
-  
+
   /**
    * Whether the profile is displayed on the user account page.
    */
   public $userView = TRUE;
-  
+
 
   public function __construct($values = array()) {
     parent::__construct($values, 'profile_type');
@@ -611,7 +580,7 @@ function profile2_default_profile_type() {
       'type' => 'main',
       'label' => t('Profile'),
       'weight' => 0,
-      'locked' => TRUE,
+      'locked' => FALSE,
   ));
   return $types;
 }

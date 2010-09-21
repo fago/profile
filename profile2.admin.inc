@@ -11,22 +11,27 @@
  */
 function profile2_overview_types() {
   $types = profile2_get_types();
-  
+
   $header = array(t('Name'), array('data' => t('Operations'), 'colspan' => '2'));
   $rows = array();
-  
+
   foreach($types as $id => $type) {
     $type_url_str = str_replace('_', '-', $id);
 
+    // Start building the row and add a name label and edit operation link
+    $row = array();
     $row[] = array('data' => theme('profile2_admin_type', array('label' => $type->label, 'type' => $type)));
     $row[] = array('data' => l(t('edit'), 'admin/structure/profiles/manage/' . $type_url_str));
-    // Set the delete column.
+
+    // If not locked, add a delete column
     if (!$type->locked) {
       $row[] = array('data' => l(t('delete'), 'admin/structure/profiles/manage/' . $type_url_str . '/delete'));
     }
     else {
       $row[] = array('data' => '');
     }
+
+    // Add this row onto the table
     $rows[] = $row;
   }
 
@@ -60,13 +65,13 @@ function theme_profile2_admin_type($variables) {
  * Generates the profile type editing form.
  */
 function profile2_type_form($form, &$form_state, $profile_type = NULL) {
-  if (!isset($profile_type->type)) {
+  if (!isset($profile_type)) {
     // This is a new type.
-    $profile_type = profile2_type_set_defaults(array());
+    $profile_type = new ProfileType();
   }
 
   // Make the type object available to implementations of hook_form_alter.
-  $form['#profile_type'] = $profile_type;
+  $form_state += array('profile_type' => $profile_type);
 
   $form['name'] = array(
     '#title' => t('Name'),
@@ -77,6 +82,22 @@ function profile2_type_form($form, &$form_state, $profile_type = NULL) {
     '#size' => 30,
     '#field_suffix' => ' <small id="edit-name-suffix">' . ($profile_type->locked ? t('Machine name: @name', array('@name' => $profile_type->type)) : '&nbsp;') . '</small>',
   );
+
+  // Machine-readable type
+  $form['type'] = array(
+    '#title' => t('Type'),
+    '#type' => 'textfield',
+    '#description' => t('Computer-readable type. Use only letters and numbers. This must also be unique.'),
+    '#required' => TRUE,
+    '#size' => 20,
+    '#default_value' => $profile_type->type,
+  );
+
+  // If the profile is locked, we don't want people seeing or editing the
+  // machine-readable type: no point
+  if ($profile_type->locked) {
+    $form['type']['#type'] = 'value';
+  }
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -96,4 +117,23 @@ function profile2_type_form($form, &$form_state, $profile_type = NULL) {
   }
 
   return $form;
+}
+
+/**
+ * Form API submit callback for profile2_type_form
+ */
+function profile2_type_form_submit(&$form, &$form_state) {
+  // Grab profile_type back ouut of the $form array
+  $profile_type = $form_state['profile_type'];
+
+  // Set the name and, if it's not set (and the type isn't locked)
+  // also set the machine-readable profile type
+  $profile_type->label = $form_state['values']['name'];
+  if (!$profile_type->locked && empty($profile_type->type)) {
+    $profile_type->type = $form_state['values']['type'];
+  }
+
+  // Save and go back
+  $profile_type->save();
+  drupal_goto('admin/structure/profiles');
 }
