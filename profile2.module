@@ -25,6 +25,7 @@ function profile2_entity_info() {
       'entity keys' => array(
         'id' => 'pid',
         'bundle' => 'type',
+        'label' => 'label',
       ),
       'bundles' => array(),
       'bundle keys' => array(
@@ -43,6 +44,7 @@ function profile2_entity_info() {
     'entity keys' => array(
       'id' => 'id',
       'name' => 'type',
+      'label' => 'label',
     ),
   );
   return $return;
