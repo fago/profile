@@ -5,7 +5,7 @@
  * Test basic CRUD functionality.
  */
 class ProfileCRUDTestCase extends DrupalWebTestCase {
-  
+
   public static function getInfo() {
     return array(
       'name' => 'Editing profiles',
@@ -13,10 +13,10 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
       'group' => 'Profile2',
     );
   }
-  
+
   function setUp() {
     parent::setUp('profile2', 'locale');
-    
+
     profile2_type_save(new ProfileType(array(
       'type' => 'test',
       'label' => 'label',
@@ -29,7 +29,7 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     )));
     profile2_load_multiple(FALSE, array(), TRUE);
   }
-  
+
   /**
    * Tests CRUD for a profile related to a user and one unrelated to a user.
    */
@@ -40,22 +40,22 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     profile2_save(profile_create(array('type' => 'test2', 'uid' => $user1->uid)));
     $profile = profile_create(array('type' => 'test', 'uid' => NULL));
     profile2_save($profile);
-    
+
     $profiles = profile2_load_by_user($user1);
     $this->assertEqual($profiles['test']->label, 'label', 'Created and loaded profile 1.');
     $this->assertEqual($profiles['test2']->label, 'label2', 'Created and loaded profile 2.');
-    
+
     // Test looking up from static cache works also.
     $profiles = profile2_load_by_user($user1);
     $this->assertEqual($profiles['test']->label, 'label', 'Looked up profiles again.');
 
     $loaded = profile2_load($profile->pid);
     $this->assertEqual($loaded->pid, $profile->pid, 'Loaded profile unrelated to a user.');
-    
+
     profile2_delete($profiles['test']);
     $profiles2 = profile2_load_by_user($user1);
     $this->assertEqual(array_keys($profiles2), array('test2'), 'Profile successfully deleted.');
-    
+
     profile2_save($profiles2['test2']);
     $this->assertEqual($profiles['test2']->pid, $profiles2['test2']->pid, 'Profile successfully updated.');
 
@@ -65,7 +65,7 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     $pids = array_keys(profile2_load_multiple(FALSE));
     profile2_delete_multiple($pids);
   }
-  
+
   /**
    * Test registration integration.
    */
@@ -83,22 +83,29 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
     $this->assertEqual(profile2_load_by_user($new_user, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_fullname[und][0][value]'], 'Profile created.');
   }
-  
+
   /**
    * Test basic edit and display.
    */
   function testEditAndDisplay() {
     $user1 = $this->drupalCreateUser(array());
     $this->drupalLogin($user1);
+    // Make sure access is denied to the profile.
+    $this->drupalGet('user/' . $user1->uid . '/edit/main');
+    $this->assertText(t('Access denied'), 'Access has been denied.');
+
+    $user2 = $this->drupalCreateUser(array('edit own main profile', 'view own main profile'));
+    $this->drupalLogin($user2);
+
     // Create profiles for the user1.
     $edit['profile_fullname[und][0][value]'] = $this->randomName();
-    $this->drupalPost('user/' . $user1->uid . '/edit/main', $edit, t('Save'));
+    $this->drupalPost('user/' . $user2->uid . '/edit/main', $edit, t('Save'));
     $this->assertText(t('The changes have been saved.'), 'Profile saved.');
-    $this->assertEqual(profile2_load_by_user($user1, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_fullname[und][0][value]'], 'Profile edited.');
-    
-    $this->drupalGet('user/' . $user1->uid);
+    $this->assertEqual(profile2_load_by_user($user2, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_fullname[und][0][value]'], 'Profile edited.');
+
+    $this->drupalGet('user/' . $user2->uid);
     $this->assertText(check_plain($edit['profile_fullname[und][0][value]']), 'Profile displayed.');
   }
-  
+
 }
 

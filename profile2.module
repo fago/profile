@@ -31,6 +31,7 @@ function profile2_entity_info() {
       'bundle keys' => array(
         'bundle' => 'type',
       ),
+      'access callback' => 'profile2_access',
     ),
   );
   $return['profile_type'] = array(
@@ -46,6 +47,7 @@ function profile2_entity_info() {
       'name' => 'type',
       'label' => 'label',
     ),
+    'access callback' => 'profile2_type_access',
   );
   return $return;
 }
@@ -492,15 +494,49 @@ function profile2_user_categories() {
 /**
  * Menu item access callback - check if a user has access to a profile category.
  */
-function profile2_category_access($account, $profile_type) {
-  if (user_access('administer profiles') && $account->uid > 0) {
+function profile2_category_access($account, $type_name) {
+  // As there might be no profile yet, create a new object for being able to run
+  // a proper access check.
+  $profile = profile_create(array('type' => $type_name, 'uid' => $account->uid));
+  return ($account->uid > 0 && profile2_access('edit', $profile));
+}
+
+/**
+ * Determines whether the given user has access to a profile.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'
+ *   or just 'edit'.
+ * @param $profile
+ *   Optionally a profile or a profile type o check access for. If nothing is
+ *   given, access for all profiles is determined.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ * @return boolean
+ *   Whether access is allowed or not.
+ */
+function profile2_access($op, $profile = NULL, $account = NULL) {
+  if (user_access('administer profiles', $account)) {
     return TRUE;
   }
-  else {
-    //TODO: Should we add a more sophisticated access handling invoking
-    // hook_profile2_access ?
-    return $GLOBALS['user']->uid == $account->uid;
+  if (isset($profile) && $type_name = $profile->type) {
+    $op = ($op == 'view') ? 'view' : 'edit';
+    if (user_access("$op any $type_name profile", $account)) {
+      return TRUE;
+    }
+    $account = isset($account) ? $account : $GLOBALS['user'];
+    if (isset($profile->uid) && $profile->uid == $account->uid && user_access("$op own $type_name profile", $account)) {
+      return TRUE;
+    }
   }
+  return FALSE;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function profile2_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer profile types', $account);
 }
 
 /**
