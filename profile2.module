@@ -238,14 +238,14 @@ function profile2_load_multiple($pids = array(), $conditions = array(), $reset =
  *
  * @param $account
  *   The user account to load profiles for, or its uid.
- * @param $type
- *   To load a single profile, pass the type of the profile to load.
+ * @param $type_name
+ *   To load a single profile, pass the type name of the profile to load.
  * @return
  *   Either a single profile or an array of profiles keyed by profile type.
  *
  * @see profile2_load_multiple()
  */
-function profile2_load_by_user($account, $type = NULL) {
+function profile2_load_by_user($account, $type_name = NULL) {
   // Use a separate query to determine all profile ids per user and cache them.
   // That way we can look up profiles by id and benefit from the static cache
   // of the entity loader.
@@ -253,14 +253,14 @@ function profile2_load_by_user($account, $type = NULL) {
   $uid = is_object($account) ? $account->uid : $account;
 
   if (!isset($cache[$uid])) {
-    if (empty($type)) {
-      $profiles = profile2_load_multiple(array(), array('uid' => $uid));
+    if (empty($type_name)) {
+      $profiles = profile2_load_multiple(FALSE, array('uid' => $uid));
       // Cache ids for further lookups.
       $cache[$uid] = array();
       foreach ($profiles as $pid => $profile) {
         $cache[$uid][$profile->type] = $pid;
       }
-      return array_combine(array_keys($cache[$uid]), $profiles);
+      return $profiles ? array_combine(array_keys($cache[$uid]), $profiles) : array();
     }
     $cache[$uid] = db_select('profile', 'p')
       ->fields('p', array('type', 'pid'))
@@ -268,8 +268,8 @@ function profile2_load_by_user($account, $type = NULL) {
       ->execute()
       ->fetchAllKeyed();
   }
-  if (isset($type)) {
-    return isset($cache[$uid][$type]) ? profile2_load($cache[$uid][$type]) : FALSE;
+  if (isset($type_name)) {
+    return isset($cache[$uid][$type_name]) ? profile2_load($cache[$uid][$type_name]) : FALSE;
   }
   // Return an array containing profiles keyed by profile type.
   return $cache[$uid] ? array_combine(array_keys($cache[$uid]), profile2_load_multiple($cache[$uid])) : $cache[$uid];
@@ -564,7 +564,7 @@ class Profile extends EntityDBExtendable {
  * Use a separate class for profile types so we can specify some defaults
  * modules may alter.
  */
-class ProfileType extends EntityDBExtendable {
+class ProfileType extends EntityDB {
 
   /**
    * Whether the profile type appears in the user categories.
@@ -601,9 +601,50 @@ class ProfileType extends EntityDBExtendable {
  */
 function profile2_default_profile_type() {
   $types['main'] = new ProfileType(array(
-      'type' => 'main',
-      'label' => t('Profile'),
-      'weight' => 0,
+    'type' => 'main',
+    'label' => t('Profile'),
+    'weight' => 0,
   ));
   return $types;
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ *
+ * Adds a checkbox for controlling field view access to fields added to
+ * profiles.
+ */
+function profile2_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if ($form['instance']['entity_type']['#value'] == 'profile') {
+    $form['field']['settings']['profile2_private'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Make the content of this field private.'),
+      '#default_value' => !empty($form['#field']['settings']['profile2_private']),
+      '#description' => t('If checked, the content of this field is only shown to the profile owner and administrators.'),
+    );
+  }
+  else {
+    // Add the value to the form so it isn't lost.
+    $form['field']['settings']['profile2_private'] = array(
+      '#type' => 'value',
+      '#value' => !empty($form['#field']['settings']['profile2_private']),
+    );
+  }
+}
+
+/**
+ * Implements hook_field_access().
+ */
+function profile2_field_access($op, $field, $entity_type, $profile = NULL, $account = NULL) {
+  if ($entity_type == 'profile' && $op == 'view' && !user_access('administer profiles', $account)) {
+    // For profiles, deny general view access.
+    if (!isset($profile)) {
+      return FALSE;
+    }
+    // Also deny view access, if someone else views a private field.
+    $account = isset($account) ? $account : $GLOBALS['user'];
+    if ($account->uid != $profile->uid && !empty($field['settings']['profile2_private'])) {
+      return FALSE;
+    }
+  }
 }
