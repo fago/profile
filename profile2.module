@@ -32,6 +32,7 @@ function profile2_entity_info() {
         'bundle' => 'type',
       ),
       'access callback' => 'profile2_access',
+      'module' => 'profile2',
     ),
   );
   $return['profile_type'] = array(
@@ -48,6 +49,7 @@ function profile2_entity_info() {
       'label' => 'label',
     ),
     'access callback' => 'profile2_type_access',
+    'module' => 'profile2',
   );
   return $return;
 }
