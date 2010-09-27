@@ -553,7 +553,7 @@ function profile2_theme() {
 /**
  * The class used for profile entities.
  */
-class Profile extends EntityDBExtendable {
+class Profile extends EntityDB {
 
   public function __construct($values = array()) {
     parent::__construct($values, 'profile');
