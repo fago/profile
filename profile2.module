@@ -33,6 +33,7 @@ function profile2_entity_info() {
       ),
       'access callback' => 'profile2_access',
       'module' => 'profile2',
+      'metadata controller class' => 'Profile2MetadataController'
     ),
   );
   $return['profile_type'] = array(
@@ -560,7 +561,22 @@ class Profile extends EntityDB {
   public function __construct($values = array()) {
     parent::__construct($values, 'profile');
   }
+
+  /**
+   * Returns the user owning this profile.
+   */
+  public function user() {
+    return user_load($this->uid);
+  }
+
+  /**
+   * Sets a new user owning this profile.
+   */
+  public function setUser($account) {
+    $this->uid = $account->uid;
+  }
 }
+
 
 /**
  * Use a separate class for profile types so we can specify some defaults
@@ -650,3 +666,13 @@ function profile2_field_access($op, $field, $entity_type, $profile = NULL, $acco
     }
   }
 }
+
+/**
+ * Entity metadata callback to load profiles for the given user account.
+ */
+function profile2_user_get_properties($account, array $options, $name) {
+  // Remove the leading 'profile_' from the property name to get the type name.
+  $profile = profile2_load_by_user($account, substr($name, 8));
+  return $profile ? $profile : NULL;
+}
+
