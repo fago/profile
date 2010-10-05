@@ -31,6 +31,7 @@ function profile2_entity_info() {
       'bundle keys' => array(
         'bundle' => 'type',
       ),
+      'uri callback' => 'profile2_uri_callback',
       'access callback' => 'profile2_access',
       'module' => 'profile2',
       'metadata controller class' => 'Profile2MetadataController'
@@ -367,8 +368,9 @@ function profile2_user_view($account) {
       $account->content['profile_' . $type] = array(
         '#type' => 'user_profile_category',
         '#title' => $profile->label,
+        '#prefix' => '<a id="profile-' . $profile->type . '"></a>',
       );
-      $account->content['profile_' . $type] += field_attach_view('profile', $profile, 'account');
+      $account->content['profile_' . $type]['view'] = $profile->view('account');
     }
   }
 }
@@ -550,6 +552,10 @@ function profile2_theme() {
     'profile2_admin_type' => array(
       'variables' => array('label' => NULL, 'type' => NULL),
     ),
+    'profile' => array(
+      'render element' => 'elements',
+      'template' => 'profile',
+    ),
   );
 }
 
@@ -575,6 +581,25 @@ class Profile extends EntityDB {
   public function setUser($account) {
     $this->uid = $account->uid;
   }
+
+  /**
+   * Returns the URI for this profile. May be altered via hook_entity_info().
+   */
+  public function uri() {
+    return entity_uri('profile', $this);
+  }
+}
+
+/**
+ * Default uri callback.
+ *
+ * @see Profile::uri()
+ */
+function profile2_uri_callback($profile) {
+  return array(
+    'path' => 'user/' . $profile->uid,
+    'options' => array('fragment' => 'profile-' . $profile->type),
+  );
 }
 
 
