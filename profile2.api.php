@@ -22,7 +22,7 @@
  * @param $profiles
  *   An array of profiles being loaded, keyed by id.
  */
-function hook_profile_load($profiles) {
+function hook_profile2_load($profiles) {
   $result = db_query('SELECT pid, foo FROM {mytable} WHERE pid IN(:ids)', array(':ids' => array_keys($profiles)));
   foreach ($result as $record) {
     $profiles[$record->pid]->foo = $record->foo;
@@ -37,7 +37,7 @@ function hook_profile_load($profiles) {
  * @param Profile $profile
  *   The profile that is being created.
  */
-function hook_profile_insert($profile) {
+function hook_profile2_insert($profile) {
   db_insert('mytable')
     ->fields(array(
       'pid' => $profile->pid,
@@ -54,7 +54,7 @@ function hook_profile_insert($profile) {
  * @param Profile $profile
  *   The profile that is being inserted or updated.
  */
-function hook_profile_presave($profile) {
+function hook_profile2_presave($profile) {
   $profile->extra = 'foo';
 }
 
@@ -66,7 +66,7 @@ function hook_profile_presave($profile) {
  * @param Profile $profile
  *   The profile that is being updated.
  */
-function hook_profile_update($profile) {
+function hook_profile2_update($profile) {
   db_update('mytable')
     ->fields(array('extra' => $profile->extra))
     ->condition('pid', $profile->pid)
@@ -81,7 +81,7 @@ function hook_profile_update($profile) {
  * @param Profile $profile
  *   The profile that is being deleted.
  */
-function hook_profile_delete($profile) {
+function hook_profile2_delete($profile) {
   db_delete('mytable')
     ->condition('pid', $profile->pid)
     ->execute();
@@ -96,7 +96,7 @@ function hook_profile_delete($profile) {
  * @param $types
  *   An array of profiles being loaded, keyed by profile type names.
  */
-function hook_profile_type_load($types) {
+function hook_profile2_type_load($types) {
   if (isset($types['main'])) {
     $types['main']->userCategory = FALSE;
     $types['main']->userView = FALSE;
@@ -111,7 +111,7 @@ function hook_profile_type_load($types) {
  * @param Profile $type
  *   The profile type that is being created.
  */
-function hook_profile_type_insert($type) {
+function hook_profile2_type_insert($type) {
   db_insert('mytable')
     ->fields(array(
       'id' => $type->id,
@@ -128,7 +128,7 @@ function hook_profile_type_insert($type) {
  * @param Profile $type
  *   The profile type that is being inserted or updated.
  */
-function hook_profile_type_presave($type) {
+function hook_profile2_type_presave($type) {
   $type->extra = 'foo';
 }
 
@@ -140,7 +140,7 @@ function hook_profile_type_presave($type) {
  * @param Profile $type
  *   The profile type that is being updated.
  */
-function hook_profile_type_update($type) {
+function hook_profile2_type_update($type) {
   db_update('mytable')
     ->fields(array('extra' => $type->extra))
     ->condition('id', $type->id)
@@ -156,7 +156,7 @@ function hook_profile_type_update($type) {
  * @param Profile $type
  *   The profile type that is being deleted.
  */
-function hook_profile_type_delete($type) {
+function hook_profile2_type_delete($type) {
   db_delete('mytable')
     ->condition('id', $type->id)
     ->execute();
@@ -168,7 +168,7 @@ function hook_profile_type_delete($type) {
  * @return
  *   An array of default profile types, keyed by profile type names.
  */
-function hook_default_profile_type() {
+function hook_default_profile2_type() {
   $types['main'] = new ProfileType(array(
       'type' => 'main',
       'label' => t('Profile'),
