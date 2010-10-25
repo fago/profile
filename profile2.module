@@ -56,6 +56,7 @@ function profile2_entity_info() {
     'admin ui' => array(
       'path' => 'admin/structure/profiles',
       'file' => 'profile2.admin.inc',
+      'controller class' => 'Profile2TypeUIController',
     ),
   );
   return $return;
