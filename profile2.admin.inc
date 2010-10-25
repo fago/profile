@@ -64,6 +64,8 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
       '#type' => 'submit',
       '#value' => t('Delete profile type'),
       '#weight' => 45,
+      '#limit_validation_errors' => array(),
+      '#submit' => array('profile2_type_form_submit_delete')
     );
   }
   return $form;
@@ -77,4 +79,11 @@ function profile2_type_form_submit(&$form, &$form_state) {
   // Save and go back.
   $profile_type->save();
   $form_state['redirect'] = 'admin/structure/profiles';
+}
+
+/**
+ * Form API submit callback for the delete button.
+ */
+function profile2_type_form_submit_delete(&$form, &$form_state) {
+  $form_state['redirect'] = 'admin/structure/profiles/manage/' . $form_state['profile2_type']->type . '/delete';
 }
