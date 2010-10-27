@@ -157,7 +157,7 @@ function profile2_page_uri_callback($profile) {
  */
 function profile2_page_own_title($type_name) {
   $type = profile2_get_types($type_name);
-  return user_is_logged_in() ? t('My @profile-label', array('@profile-label' => $type->label)) : check_plain($type->label);
+  return user_is_logged_in() ? t('My @profile-label', array('@profile-label' => drupal_strtolower($type->label))) : check_plain($type->label);
 }
 
 /**
