@@ -21,7 +21,7 @@ function profile2_install() {
     field_create_field($field);
   }
   $instance = array(
-    'entity_type' => 'profile',
+    'entity_type' => 'profile2',
     'field_name' => 'profile_fullname',
     'bundle' => 'main',
     'label' => 'Full name',
