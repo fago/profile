@@ -91,6 +91,10 @@ function profile2_by_uid_load($uid, $type_name) {
  * Returns the base path to use as profile page.
  */
 function profile2_page_get_base_path($profile_type) {
+  // Allow for an easy customization of the page's base path.
+  if (!empty($profile_type->data['page_path'])) {
+    return $profile_type->data['page_path'];
+  }
   return 'profile-' . $profile_type->type;
 }
 
