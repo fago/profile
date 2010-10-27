@@ -285,9 +285,9 @@ function profile2_type_delete(ProfileType $type) {
 }
 
 /**
- * Implements hook_profile_load()
+ * Implements hook_profile2_load()
  */
-function profile2_profile_load($profiles) {
+function profile2_profile2_load($profiles) {
   $types = profile2_get_types();
   // Load the profile's label.
   foreach ($profiles as $profile) {
@@ -532,11 +532,46 @@ class Profile extends EntityDB {
     $this->uid = $account->uid;
   }
 
+
+  /**
+   * Gets the associated profile type object.
+   *
+   * @return ProfileType
+   */
+  public function getType() {
+    return profile2_get_types($this->type);
+  }
+
   /**
    * Returns the URI for this profile. May be altered via hook_entity_info().
    */
   public function uri() {
     return entity_uri('profile2', $this);
+  }
+
+  /**
+   * Returns the full url() for the profile.
+   */
+  public function url() {
+    $uri = $this->uri();
+    return url($uri['path'], $uri);
+  }
+
+  /**
+   * Returns the drupal path to this profile.
+   */
+  public function path() {
+    $uri = $this->uri();
+    return $uri['path'];
+  }
+
+  public function buildContent($view_mode = 'full', $langcode = NULL) {
+    $content = array();
+    // Assume newly create objects are still empty.
+    if (!empty($this->is_new)) {
+      $content['empty']['#markup'] = t('There is no profile data yet.');
+    }
+    return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode, $content);
   }
 }
 

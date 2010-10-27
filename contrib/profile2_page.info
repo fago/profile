@@ -1,0 +1,9 @@
+; $Id$
+name = Profile pages
+description = Adds separate pages for viewing and editing profiles.
+version = VERSION
+core = 7.x
+files[] = profile2_page.module
+files[] = profile2_page.inc
+files[] = profile2_page.install
+dependencies[] = profile2

@@ -111,7 +111,6 @@ function profile2_schema() {
         'not null' => FALSE,
         'size' => 'big',
         'serialize' => TRUE,
-        'merge' => TRUE,
         'description' => 'A serialized array of additional data related to this profile type.',
       ),
     ),
