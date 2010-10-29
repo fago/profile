@@ -6,7 +6,7 @@ $Id$
 
 Maintainers: 
  * Wolfgang Ziegler (fago), nuppla@zites.net
- * Joachim Noreiko (joachim)
+ * Joachim Noreiko (joachim), joachim.n+drupal@gmail.com
 
 
 This modules is designed to be the successor of the core profile module. In
