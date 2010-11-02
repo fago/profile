@@ -49,7 +49,8 @@ Installation
 
 Usage
 -----
- * The module may be enabled per profile-type by checking appropriate checkbox
-   in the profile type's settings.
+ * The module may be enabled per profile-type by checking the checkbox
+   "Provide a separate page for editing profiles." in the profile type's
+   settings.
  * Users with sufficient permissions (check user permissions) receive a menu
    item in their user menu, just beside the "My account" menu item.
