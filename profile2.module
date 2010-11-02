@@ -502,9 +502,9 @@ function profile2_theme() {
     'profile2_admin_type' => array(
       'variables' => array('label' => NULL, 'type' => NULL),
     ),
-    'profile' => array(
+    'profile2' => array(
       'render element' => 'elements',
-      'template' => 'profile',
+      'template' => 'profile2',
     ),
   );
 }
