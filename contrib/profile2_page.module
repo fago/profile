@@ -131,9 +131,11 @@ function profile2_page_entity_info_alter(&$entity_info) {
   // Add new view modes for the page.
   $entity_info['profile2']['view modes']['page'] = array(
     'label' => t('Profile page'),
+     'custom settings' => FALSE,
   );
   $entity_info['profile2']['view modes']['teaser'] = array(
     'label' => t('Teaser'),
+    'custom settings' => FALSE,
   );
   $entity_info['profile2']['uri callback'] = 'profile2_page_uri_callback';
 }
