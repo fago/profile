@@ -20,6 +20,7 @@ function profile2_entity_info() {
       'view modes' => array(
         'account' => array(
           'label' => t('User account'),
+          'custom settings' => FALSE,
         ),
       ),
       'entity keys' => array(
