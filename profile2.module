@@ -570,7 +570,7 @@ class Profile extends EntityDB {
     $content = array();
     // Assume newly create objects are still empty.
     if (!empty($this->is_new)) {
-      $content['empty']['#markup'] = t('There is no profile data yet.');
+      $content['empty']['#markup'] = '<em class="profile2-no-data">' . t('There is no profile data yet.') . '</em>';
     }
     return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode, $content);
   }
