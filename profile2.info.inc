@@ -19,6 +19,13 @@ class Profile2MetadataController extends EntityDefaultMetadataController {
       'validation callback' => 'entity_metadata_validate_integer_positive',
     );
 
+    $properties['type'] = array(
+      'setter callback' => 'entity_metadata_verbatim_set',
+      'setter permission' => 'administer profiles',
+      'required' => TRUE,
+      'description' => t('The profile type.'),
+    ) + $properties['type'];
+
     $properties['uid'] = array(
       'label' => t("User id"),
       'description' => t("The unique ID of the profile owner."),

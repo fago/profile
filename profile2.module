@@ -516,6 +516,10 @@ function profile2_theme() {
 class Profile extends EntityDB {
 
   public function __construct($values = array()) {
+    if (isset($values['user'])) {
+      $this->setUser($values['user']);
+      unset($values['user']);
+    }
     parent::__construct($values, 'profile2');
   }
 
