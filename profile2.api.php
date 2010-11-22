@@ -179,5 +179,25 @@ function hook_default_profile2_type() {
 }
 
 /**
+ * Alter profile2 forms.
+ *
+ * Modules may alter the profile2 entity form regardless to which form it is
+ * attached by making use of this hook or the profile type specifiy
+ * hook_form_profile2_edit_PROFILE_TYPE_form_alter(). #entity_builders may be
+ * used in order to copy the values of added form elements to the entity, just
+ * as described by entity_form_submit_build_entity().
+ *
+ * @param $form
+ *   Nested array of form elements that comprise the form.
+ * @param $form_state
+ *   A keyed array containing the current state of the form.
+ *
+ * @see profile2_attach_form()
+ */
+function hook_form_profile2_form_alter(&$form, &$form_state) {
+  // Your alterations.
+}
+
+/**
  * @}
  */

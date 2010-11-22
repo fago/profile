@@ -359,17 +359,30 @@ function profile2_form_user_register_form_alter(&$form, &$form_state) {
  * Attaches the profile forms of the profiles set in
  * $form_state['profiles'].
  *
+ * Modules may alter the profile2 entity form regardless to which form it is
+ * attached by making use of hook_form_profile2_form_alter().
+ *
+ * @param $form
+ *   The form to which to attach the profile2 form. For each profile the form
+ *   is added to @code $form['profile_' . $profile->type] @endcode. This helper
+ *   also adds in a validation and a submit handler caring for the attached
+ *   profile forms.
+ *
+ * @see hook_form_profile2_form_alter()
  * @see profile2_form_validate_handler()
  * @see profile2_form_submit_handler()
  */
 function profile2_attach_form(&$form, &$form_state) {
   foreach ($form_state['profiles'] as $type => $profile) {
-    $form['profile_' . $profile->type] = array();
+    $form['profile_' . $profile->type]['#tree'] = TRUE;
+    $form['profile_' . $profile->type]['#parents'] = array('profile_' . $profile->type);
     field_attach_form('profile2', $profile, $form['profile_' . $profile->type], $form_state);
+    // Provide a central place for modules to alter the profile forms.
+    $hooks[] = 'form_profile2_edit_' . $type . '_form';
+    $hooks[] = 'form_profile2_form';
+    drupal_alter($hooks, $form, $form_state);
   }
   $form['#validate'][] = 'profile2_form_validate_handler';
-  // Extract the form values and clean them up first. This is needed as some
-  // submit callbacks like user_register_submit() rely on clean form values.
   $form['#submit'][] = 'profile2_form_submit_handler';
 }
 
@@ -380,7 +393,10 @@ function profile2_attach_form(&$form, &$form_state) {
  */
 function profile2_form_validate_handler(&$form, &$form_state) {
   foreach ($form_state['profiles'] as $type => $profile) {
-    field_attach_form_validate('profile2', $profile, $form, $form_state);
+    // @see entity_form_field_validate()
+    $pseudo_entity = (object) $form_state['values']['profile_' . $profile->type];
+    $pseudo_entity->type = $type;
+    field_attach_form_validate('profile2', $pseudo_entity, $form['profile_' . $profile->type], $form_state);
   }
 }
 
@@ -391,6 +407,8 @@ function profile2_form_validate_handler(&$form, &$form_state) {
  */
 function profile2_form_submit_handler(&$form, &$form_state) {
   profile2_form_submit_build_profile($form, $form_state);
+  // This is needed as some submit callbacks like user_register_submit() rely on
+  // clean form values.
   profile2_form_submit_cleanup($form, $form_state);
 
   foreach ($form_state['profiles'] as $type => $profile) {
@@ -403,13 +421,19 @@ function profile2_form_submit_handler(&$form, &$form_state) {
 }
 
 /**
- * Submit builder. Extracts the form values and updates the entities.
+ * Submit builder. Extracts the form values and updates the profile entities.
  *
  * @see profile2_attach_form()
  */
 function profile2_form_submit_build_profile(&$form, &$form_state) {
   foreach ($form_state['profiles'] as $type => $profile) {
-    entity_form_submit_build_entity('profile2', $profile, $form, $form_state);
+    // @see entity_form_submit_build_entity()
+    if (isset($form['profile_' . $type]['#entity_builders'])) {
+      foreach ($form['profile_' . $type]['#entity_builders'] as $function) {
+        $function('profile2', $profile, $form['profile_' . $type], $form_state);
+      }
+    }
+    field_attach_submit('profile2', $profile, $form['profile_' . $type], $form_state);
   }
 }
 
@@ -419,8 +443,8 @@ function profile2_form_submit_build_profile(&$form, &$form_state) {
  * @see profile2_attach_form()
  */
 function profile2_form_submit_cleanup(&$form, &$form_state) {
-  foreach ($form_state['field'] as $field_name => $info) {
-    unset($form_state['values'][$field_name]);
+  foreach ($form_state['profiles'] as $type => $profile) {
+    unset($form_state['values']['profile_' . $type]);
   }
 }
 

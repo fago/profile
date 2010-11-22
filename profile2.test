@@ -75,13 +75,13 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     $edit = array();
     $edit['name'] = $name = $this->randomName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
-    $edit['profile_fullname[und][0][value]'] = $this->randomName();
+    $edit['profile_main[profile_fullname][und][0][value]'] = $this->randomName();
     $this->drupalPost('user/register', $edit, t('Create new account'));
     $this->assertText(t('A welcome message with further instructions has been sent to your e-mail address.'), t('User registered successfully.'));
     $return = user_load_multiple(array(), array('name' => $name, 'mail' => $mail));
     $new_user = reset($return);
     $this->assertTrue($new_user->status, t('New account is active after registration.'));
-    $this->assertEqual(profile2_load_by_user($new_user, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_fullname[und][0][value]'], 'Profile created.');
+    $this->assertEqual(profile2_load_by_user($new_user, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_main[profile_fullname][und][0][value]'], 'Profile created.');
   }
 
   /**
@@ -98,13 +98,13 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     $this->drupalLogin($user2);
 
     // Create profiles for the user1.
-    $edit['profile_fullname[und][0][value]'] = $this->randomName();
+    $edit['profile_main[profile_fullname][und][0][value]'] = $this->randomName();
     $this->drupalPost('user/' . $user2->uid . '/edit/main', $edit, t('Save'));
     $this->assertText(t('The changes have been saved.'), 'Profile saved.');
-    $this->assertEqual(profile2_load_by_user($user2, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_fullname[und][0][value]'], 'Profile edited.');
+    $this->assertEqual(profile2_load_by_user($user2, 'main')->profile_fullname[LANGUAGE_NONE][0]['value'], $edit['profile_main[profile_fullname][und][0][value]'], 'Profile edited.');
 
     $this->drupalGet('user/' . $user2->uid);
-    $this->assertText(check_plain($edit['profile_fullname[und][0][value]']), 'Profile displayed.');
+    $this->assertText(check_plain($edit['profile_main[profile_fullname][und][0][value]']), 'Profile displayed.');
   }
 
 }
