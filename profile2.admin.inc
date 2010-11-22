@@ -52,6 +52,7 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#description' => t('A unique machine-readable name for this profile type. It must only contain lowercase letters, numbers, and underscores.'),
   );
 
+  $form['data']['#tree'] = TRUE;
   $form['data']['registration'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show during user account registration.'),
