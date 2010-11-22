@@ -303,8 +303,9 @@ function profile2_profile2_load($profiles) {
  */
 function profile2_profile2_type_delete($type) {
   // Delete all profiles of this type.
-  $pids = array_keys(profile2_load_multiple(FALSE, array('type' => $type->type)));
-  profile2_delete_multiple($pids);
+  if ($pids = array_keys(profile2_load_multiple(FALSE, array('type' => $type->type)))) {
+    profile2_delete_multiple($pids);
+  }
 }
 
 /**
