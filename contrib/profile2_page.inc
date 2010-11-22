@@ -34,11 +34,13 @@ function profile2_page_view($profile) {
  * The profile edit form.
  */
 function profile2_form($form, &$form_state, $profile) {
-  field_attach_form('profile2', $profile, $form, $form_state);
-
-  // Hack: entity_form_field_validate() needs the bundle to be set.
-  // @todo: Fix core and remove the hack.
-  $form['type'] = array('#type' => 'value', '#value' => $profile->type);
+  if (empty($form_state['profiles'])) {
+    $form_state['profiles'][$profile->type] = $profile;
+  }
+  // Prevent invoking the same hooks twice, so tell profile2_attach_form() to
+  // skip invoking the hooks.
+  $form_state['profile2_skip_hook'] = TRUE;
+  profile2_attach_form($form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -55,22 +57,15 @@ function profile2_form($form, &$form_state, $profile) {
       '#submit' => array('profile2_form_submit_delete')
     );
   }
+  $form['#submit'][] = 'profile2_form_submit';
   return $form;
-}
-
-/**
- * Profile form validation handler.
- */
-function profile2_form_validate($form, &$form_state) {
-  entity_form_field_validate('profile2', $form, $form_state);
 }
 
 /**
  * Profile form submit handler.
  */
 function profile2_form_submit($form, &$form_state) {
-  entity_form_submit_build_entity('profile2', $form_state['profile2'], $form, $form_state);
-  $form_state['profile2']->save();
+  // The profile is being saved by profile2_form_submit_handler().
   drupal_set_message(t('The changes have been saved.'));
   $form_state['redirect'] = $form_state['profile2']->path();
 }

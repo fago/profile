@@ -101,14 +101,17 @@ function profile2_page_get_base_path($profile_type) {
 /**
  * Implements hook_forms().
  */
-function profile2_forms() {
-  $info = entity_get_info('profile2');
-  // Translate bundle form ids to the base form id 'profile2_form'.
-  foreach ($info['bundles'] as $bundle => $bundle_info) {
-    $forms['profile2_edit_' . $bundle . '_form']['callback'] = 'profile2_form';
-    $forms['profile2_edit_' . $bundle . '_form']['wrapper callback'] = 'entity_ui_form_defaults';
+function profile2_page_forms($form_id, $args) {
+  // For efficiency, only act if the third argument is 'profile2'.
+  if (isset($args[2]) && is_string($args[2]) && $args[2] == 'profile2') {
+    $info = entity_get_info('profile2');
+    // Translate bundle form ids to the base form id 'profile2_form'.
+    foreach ($info['bundles'] as $bundle => $bundle_info) {
+      $forms['profile2_edit_' . $bundle . '_form']['callback'] = 'profile2_form';
+      $forms['profile2_edit_' . $bundle . '_form']['wrapper callback'] = 'entity_ui_form_defaults';
+    }
+    return $forms;
   }
-  return $forms;
 }
 
 /**

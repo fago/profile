@@ -383,10 +383,15 @@ function profile2_attach_form(&$form, &$form_state) {
     $form['profile_' . $profile->type]['#tree'] = TRUE;
     $form['profile_' . $profile->type]['#parents'] = array('profile_' . $profile->type);
     field_attach_form('profile2', $profile, $form['profile_' . $profile->type], $form_state);
-    // Provide a central place for modules to alter the profile forms.
-    $hooks[] = 'form_profile2_edit_' . $type . '_form';
-    $hooks[] = 'form_profile2_form';
-    drupal_alter($hooks, $form, $form_state);
+
+    // Provide a central place for modules to alter the profile forms, but
+    // skip that in case the caller cares about invoking the hooks.
+    // @see profile2_form().
+    if (!isset($form_state['profile2_skip_hook'])) {
+      $hooks[] = 'form_profile2_edit_' . $type . '_form';
+      $hooks[] = 'form_profile2_form';
+      drupal_alter($hooks, $form, $form_state);
+    }
   }
   $form['#validate'][] = 'profile2_form_validate_handler';
   $form['#submit'][] = 'profile2_form_submit_handler';
