@@ -35,13 +35,6 @@ function profile2_install() {
 }
 
 /**
- * Implements hook_uninstall().
- */
-function profile2_uninstall() {
-  variable_del('profile2_register');
-}
-
-/**
  * Implements hook_schema().
  */
 function profile2_schema() {
