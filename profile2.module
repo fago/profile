@@ -134,18 +134,14 @@ function profile2_permission() {
 /**
  * Gets an array of all profile types, keyed by the type name.
  *
- * @param $type
+ * @param $type_name
  *   If set, the type with the given name is returned.
  * @return ProfileType[]
  *   Depending whether $type isset, an array of profile types or a single one.
  */
-function profile2_get_types($type = NULL) {
-  // @todo: fix fugly variable names.
-  $types = entity_load('profile2_type', isset($type) ? array($type) : FALSE);
-  if (isset($type)) {
-    return isset($types[$type]) ? $types[$type] : FALSE;
-  }
-  return $types;
+function profile2_get_types($type_name = NULL) {
+  $types = entity_load('profile2_type', isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
 }
 
 /**
