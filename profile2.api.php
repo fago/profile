@@ -14,29 +14,33 @@
  */
 
 /**
- * Act on profile being loaded from the database.
- *
- * This hook is invoked during profile loading, which is handled by
- * entity_load(), via the EntityCRUDController.
- *
- * @param $profiles
- *   An array of profiles being loaded, keyed by id.
- */
-function hook_profile2_load($profiles) {
-  $result = db_query('SELECT pid, foo FROM {mytable} WHERE pid IN(:ids)', array(':ids' => array_keys($profiles)));
+* Act on profiles being loaded from the database.
+*
+* This hook is invoked during profile loading, which is handled by
+* entity_load(), via the EntityCRUDController.
+*
+* @param $entities
+*   An array of profile2 entities being loaded, keyed by id.
+*
+* @see hook_entity_load()
+*/
+function hook_profile2_load($entities) {
+  $result = db_query('SELECT pid, foo FROM {mytable} WHERE pid IN(:ids)', array(':ids' => array_keys($entities)));
   foreach ($result as $record) {
-    $profiles[$record->pid]->foo = $record->foo;
+    $entities[$record->pid]->foo = $record->foo;
   }
 }
 
 /**
- * Respond to creation of a new profile.
- *
- * This hook is invoked after the profile is inserted into the database.
- *
- * @param Profile $profile
- *   The profile that is being created.
- */
+* Respond when a profile is inserted.
+*
+* This hook is invoked after the profile is inserted into the database.
+*
+* @param profile
+*   The profile that is being inserted.
+*
+* @see hook_entity_insert()
+*/
 function hook_profile2_insert($profile) {
   db_insert('mytable')
     ->fields(array(
@@ -47,25 +51,29 @@ function hook_profile2_insert($profile) {
 }
 
 /**
- * Act on a profile being inserted or updated.
- *
- * This hook is invoked before the profile is saved to the database.
- *
- * @param Profile $profile
- *   The profile that is being inserted or updated.
- */
+* Act on a profile being inserted or updated.
+*
+* This hook is invoked before the profile is saved to the database.
+*
+* @param $profile
+*   The profile that is being inserted or updated.
+*
+* @see hook_entity_presave()
+*/
 function hook_profile2_presave($profile) {
   $profile->extra = 'foo';
 }
 
 /**
- * Respond to updates to a profile.
- *
- * This hook is invoked after the profile has been updated in the database.
- *
- * @param Profile $profile
- *   The profile that is being updated.
- */
+* Respond to a profile being updated.
+*
+* This hook is invoked after the profile has been updated in the database.
+*
+* @param $profile
+*   The $profile that is being updated.
+*
+* @see hook_entity_update()
+*/
 function hook_profile2_update($profile) {
   db_update('mytable')
     ->fields(array('extra' => $profile->extra))
@@ -74,17 +82,71 @@ function hook_profile2_update($profile) {
 }
 
 /**
- * Respond to profile deletion.
- *
- * This hook is invoked after the profile has been removed from the database.
- *
- * @param Profile $profile
- *   The profile that is being deleted.
- */
+* Respond to profile deletion.
+*
+* This hook is invoked after the profile has been removed from the database.
+*
+* @param $profile
+*   The profile that is being deleted.
+*
+* @see hook_entity_delete()
+*/
 function hook_profile2_delete($profile) {
   db_delete('mytable')
     ->condition('pid', $profile->pid)
     ->execute();
+}
+
+/**
+* Act on a profile that is being assembled before rendering.
+*
+* @param $profile
+*   The profile entity.
+* @param $view_mode
+*   The view mode the profile is rendered in.
+* @param $langcode
+*   The language code used for rendering.
+*
+* The module may add elements to $profile->content prior to rendering. The
+* structure of $profile->content is a renderable array as expected by
+* drupal_render().
+*
+* @see hook_entity_prepare_view()
+* @see hook_entity_view()
+*/
+function hook_profile2_view($profile, $view_mode, $langcode) {
+  $profile->content['my_additional_field'] = array(
+    '#markup' => $additional_field,
+    '#weight' => 10,
+    '#theme' => 'mymodule_my_additional_field',
+  );
+}
+
+/**
+* Alter the results of entity_view() for profiles.
+*
+* @param $build
+*   A renderable array representing the profile content.
+*
+* This hook is called after the content has been assembled in a structured
+* array and may be used for doing processing which requires that the complete
+* profile content structure has been built.
+*
+* If the module wishes to act on the rendered HTML of the profile rather than
+* the structured content array, it may use this hook to add a #post_render
+* callback. Alternatively, it could also implement hook_preprocess_profile2().
+* See drupal_render() and theme() documentation respectively for details.
+*
+* @see hook_entity_view_alter()
+*/
+function hook_profile2_view_alter($build) {
+  if ($build['#view_mode'] == 'full' && isset($build['an_additional_field'])) {
+    // Change its weight.
+    $build['an_additional_field']['#weight'] = -10;
+
+    // Add a #post_render callback to act on the rendered HTML of the entity.
+    $build['#post_render'][] = 'my_module_post_render';
+  }
 }
 
 /**
@@ -104,12 +166,12 @@ function hook_profile2_type_load($types) {
 }
 
 /**
- * Respond to creation of a new profile.
+ * Respond when a profile type is inserted.
  *
  * This hook is invoked after the profile type is inserted into the database.
  *
- * @param Profile $type
- *   The profile type that is being created.
+ * @param $type
+ *   The profile type that is being inserted.
  */
 function hook_profile2_type_insert($type) {
   db_insert('mytable')
@@ -125,7 +187,7 @@ function hook_profile2_type_insert($type) {
  *
  * This hook is invoked before the profile type is saved to the database.
  *
- * @param Profile $type
+ * @param $type
  *   The profile type that is being inserted or updated.
  */
 function hook_profile2_type_presave($type) {
@@ -137,7 +199,7 @@ function hook_profile2_type_presave($type) {
  *
  * This hook is invoked after the profile type has been updated in the database.
  *
- * @param Profile $type
+ * @param $type
  *   The profile type that is being updated.
  */
 function hook_profile2_type_update($type) {
@@ -153,7 +215,7 @@ function hook_profile2_type_update($type) {
  * This hook is invoked after the profile type has been removed from the
  * database.
  *
- * @param Profile $type
+ * @param $type
  *   The profile type that is being deleted.
  */
 function hook_profile2_type_delete($type) {
@@ -163,7 +225,7 @@ function hook_profile2_type_delete($type) {
 }
 
 /**
- * Define default profile types.
+ * Define default profile type configurations.
  *
  * @return
  *   An array of default profile types, keyed by profile type names.
@@ -176,6 +238,52 @@ function hook_default_profile2_type() {
       'locked' => TRUE,
   ));
   return $types;
+}
+
+/**
+* Alter default profile type configurations.
+*
+* @param $defaults
+*   An array of default profile types, keyed by type names.
+*
+* @see hook_default_profile2_type()
+*/
+function hook_default_profile2_type_alter(&$defaults) {
+  $defaults['main']->label = 'custom label';
+}
+
+/**
+* Respond when profile type configurations are enabled.
+*
+* This hook is invoked for profile types as soon as new enabled profile types
+* are available to the system - either as a new profile type has been
+* inserted into the database or modules with profile types in code have
+* been enabled.
+*
+* @param $entities
+*   The profile type entities keyed by entity ID.
+*
+* @see hook_entity_enabled()
+*/
+function hook_profile2_type_enabled($entities) {
+  mymodule_initialize($entities);
+}
+
+/**
+* Respond when profile type configurations are disabled.
+*
+* This hook is invoked for profile types when profile type configurations have
+* been disabled or disappeared - either as an customly created profile type
+* has been deleted from the database or modules providing default
+* configurations have been disabled.
+*
+* @param $entities
+*   The profile type entities keyed by entity ID.
+*
+* @see hook_entity_disabled()
+*/
+function hook_profile2_type_disabled($entities) {
+  mymodule_deactivate($entities);
 }
 
 /**
