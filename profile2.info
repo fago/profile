@@ -1,11 +1,9 @@
 ; $Id$
 name = Profile2
 description = Supports configurable user profiles.
-version = VERSION
 core = 7.x
 files[] = profile2.admin.inc
-files[] = profile2.module
 files[] = profile2.info.inc
-files[] = profile2.install
 files[] = profile2.test
 dependencies[] = entity
+configure = admin/structure/profiles
