@@ -380,6 +380,13 @@ function profile2_attach_form(&$form, &$form_state) {
     $form['profile_' . $profile->type]['#parents'] = array('profile_' . $profile->type);
     field_attach_form('profile2', $profile, $form['profile_' . $profile->type], $form_state);
 
+    if (count(field_info_instances('profile2', $profile->type)) == 0) {
+      $form['profile_' . $profile->type]['message'] = array(
+        '#access' => user_access('administer profile types'),
+        '#markup' => t('No fields have been associated with this profile type. Go to the <a href="!url">Profile types</a> page to add some fields.', array('!url' => url('admin/structure/profiles'))),
+      );
+    }
+
     // Provide a central place for modules to alter the profile forms, but
     // skip that in case the caller cares about invoking the hooks.
     // @see profile2_form().
