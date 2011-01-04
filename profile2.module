@@ -114,16 +114,16 @@ function profile2_permission() {
     $type_name = check_plain($type->type);
     $permissions += array(
       "edit own $type_name profile" => array(
-        'title' => t('Edit own %type_name profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: Edit own profile', array('%type_name' => $type->label)),
       ),
       "edit any $type_name profile" => array(
-        'title' => t('Edit any %type_name profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: Edit any profile', array('%type_name' => $type->label)),
       ),
       "view own $type_name profile" => array(
-        'title' => t('View own %type_name profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: View own profile', array('%type_name' => $type->label)),
       ),
       "view any $type_name profile" => array(
-        'title' => t('View any %type_name profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: View any profile', array('%type_name' => $type->label)),
       ),
     );
   }
@@ -659,19 +659,6 @@ class ProfileType extends EntityDB {
   public function isLocked() {
     return isset($this->status) && empty($this->is_new) && (($this->status & ENTITY_IN_CODE) || ($this->status & ENTITY_FIXED));
   }
-}
-
-/**
- * Implements hook_default_profile2_type().
- */
-function profile2_default_profile2_type() {
-  $types['main'] = new ProfileType(array(
-    'type' => 'main',
-    'label' => t('Profile'),
-    'weight' => 0,
-    'data' => array('registration' => TRUE),
-  ));
-  return $types;
 }
 
 /**

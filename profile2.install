@@ -10,28 +10,16 @@
  * Implements hook_install().
  */
 function profile2_install() {
-  // Auto-create a field for the full name, if it doesn't exist yet.
-  if (!field_info_field('profile_fullname')) {
-    $field = array(
-      'field_name' => 'profile_fullname',
-      'type' => 'text',
-      'cardinality' => 1,
-      'translatable' => FALSE,
-    );
-    field_create_field($field);
-  }
-  $instance = array(
-    'entity_type' => 'profile2',
-    'field_name' => 'profile_fullname',
-    'bundle' => 'main',
-    'label' => 'Full name',
-    'description' => 'Specify your first and last name.',
-    'widget' => array(
-      'type' => 'text_textfield',
-      'weight' => 0,
-    ),
-  );
-  field_create_instance($instance);
+  // Add an initial profile type.
+  $type = entity_create('profile2_type', array(
+    'type' => 'main',
+    'label' => t('Main profile'),
+    'weight' => 0,
+    'data' => array('registration' => TRUE, 'use_page' => TRUE),
+  ));
+  $type->save();
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
+  drupal_set_message(t('A main profile type has been created and assigned to all users. Go to the <a href="!url">Profile types</a> page to add some fields or to configure further profile types.', array('!url' => url('admin/structure/profiles'))));
 }
 
 /**

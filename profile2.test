@@ -28,6 +28,27 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
       'weight' => 2
     )));
     profile2_load_multiple(FALSE, array(), TRUE);
+
+    // Add a field to main type, which is created during module installation.
+    $field = array(
+      'field_name' => 'profile_fullname',
+      'type' => 'text',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    );
+    field_create_field($field);
+    $instance = array(
+      'entity_type' => 'profile2',
+      'field_name' => 'profile_fullname',
+      'bundle' => 'main',
+      'label' => 'Full name',
+      'description' => 'Specify your first and last name.',
+      'widget' => array(
+        'type' => 'text_textfield',
+        'weight' => 0,
+      ),
+    );
+    field_create_instance($instance);
   }
 
   /**
@@ -88,7 +109,8 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
    * Test basic edit and display.
    */
   function testEditAndDisplay() {
-    $user1 = $this->drupalCreateUser(array());
+    user_role_revoke_permissions(DRUPAL_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
+    $user1 = $this->drupalCreateUser();
     $this->drupalLogin($user1);
     // Make sure access is denied to the profile.
     $this->drupalGet('user/' . $user1->uid . '/edit/main');
