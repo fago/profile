@@ -87,13 +87,12 @@ function profile2_entity_info_alter(&$entity_info) {
  * Menu argument loader; Load a profile type by string.
  *
  * @param $type
- *   The machine-readable name of a profile type to load;
- *   having '_' replaced with '-'.
+ *   The machine-readable name of a profile type to load.
  * @return
  *   A profile type array or FALSE if $type does not exist.
  */
 function profile2_type_load($type) {
-  return profile2_get_types(strtr($type, array('-' => '_')));
+  return profile2_get_types($type);
 }
 
 /**
