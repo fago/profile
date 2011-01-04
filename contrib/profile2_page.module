@@ -11,6 +11,12 @@
  */
 function profile2_page_menu() {
   $items = array();
+
+  // Bugfix for uninstalling the module, see http://drupal.org/node/1008346.
+  if (!module_exists('profile2')) {
+    return;
+  }
+
   foreach (profile2_get_types() as $type_name => $type) {
     if (!empty($type->data['use_page'])) {
       $path = profile2_page_get_base_path($type);
