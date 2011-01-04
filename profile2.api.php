@@ -253,40 +253,6 @@ function hook_default_profile2_type_alter(&$defaults) {
 }
 
 /**
-* Respond when profile type configurations are enabled.
-*
-* This hook is invoked for profile types as soon as new enabled profile types
-* are available to the system - either as a new profile type has been
-* inserted into the database or modules with profile types in code have
-* been enabled.
-*
-* @param $entities
-*   The profile type entities keyed by entity ID.
-*
-* @see hook_entity_enabled()
-*/
-function hook_profile2_type_enabled($entities) {
-  mymodule_initialize($entities);
-}
-
-/**
-* Respond when profile type configurations are disabled.
-*
-* This hook is invoked for profile types when profile type configurations have
-* been disabled or disappeared - either as an customly created profile type
-* has been deleted from the database or modules providing default
-* configurations have been disabled.
-*
-* @param $entities
-*   The profile type entities keyed by entity ID.
-*
-* @see hook_entity_disabled()
-*/
-function hook_profile2_type_disabled($entities) {
-  mymodule_deactivate($entities);
-}
-
-/**
  * Alter profile2 forms.
  *
  * Modules may alter the profile2 entity form regardless to which form it is
