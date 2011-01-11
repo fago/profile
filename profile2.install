@@ -52,9 +52,15 @@ function profile2_schema() {
     'indexes' => array(
       'uid' => array('uid'),
     ),
-    'foreign keys' => array(
-      'uid' => array('users' => 'uid'),
-      'type' => array('profile_type' => 'type'),
+    'foreign keys' => array(    
+      'uid' => array(
+        'table' => 'user',
+        'columns' => array('uid' => 'uid'),
+      ),
+      'type' => array(
+        'table' => 'profile_type',
+        'columns' => array('type' => 'type'),
+      ),
     ),
     'primary key' => array('pid'),
   );
