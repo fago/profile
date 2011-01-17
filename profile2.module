@@ -553,7 +553,7 @@ function profile2_theme() {
 /**
  * The class used for profile entities.
  */
-class Profile extends EntityDB {
+class Profile extends Entity {
 
   public function __construct($values = array()) {
     if (isset($values['user'])) {
@@ -637,7 +637,7 @@ function profile2_uri_callback($profile) {
  * Use a separate class for profile types so we can specify some defaults
  * modules may alter.
  */
-class ProfileType extends EntityDB {
+class ProfileType extends Entity {
 
   /**
    * Whether the profile type appears in the user categories.
