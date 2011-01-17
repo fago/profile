@@ -15,35 +15,32 @@ class Profile2MetadataController extends EntityDefaultMetadataController {
     $info = parent::entityPropertyInfo();
     $properties = &$info[$this->type]['properties'];
 
-    $properties['pid'] += array(
-      'validation callback' => 'entity_metadata_validate_integer_positive',
+    $properties['label'] = array(
+      'label' => t('Label'),
+      'description' => t('The profile label'),
+      'getter callback' => 'entity_property_getter_method',
     );
 
     $properties['type'] = array(
-      'setter callback' => 'entity_metadata_verbatim_set',
+      'type' => 'profile2_type',
+      'getter callback' => 'entity_property_getter_method',
+      'setter callback' => 'entity_property_setter_method',
       'setter permission' => 'administer profiles',
       'required' => TRUE,
       'description' => t('The profile type.'),
     ) + $properties['type'];
 
-    $properties['uid'] = array(
-      'label' => t("User id"),
-      'description' => t("The unique ID of the profile owner."),
-      'setter callback' => 'entity_metadata_verbatim_set',
-      'setter permission' => 'administer profiles',
-      'validation callback' => 'entity_metadata_validate_integer_non_negative',
-      'clear' => array('user'),
-    ) + $properties['uid'];
+    unset($properties['uid']);
 
     $properties['user'] = array(
       'label' => t("User"),
       'type' => 'user',
       'description' => t("The owner of the profile."),
-      'getter callback' => 'entity_metadata_getter_method',
-      'setter callback' => 'entity_metadata_setter_method',
+      'getter callback' => 'entity_property_getter_method',
+      'setter callback' => 'entity_property_setter_method',
       'setter permission' => 'administer profiles',
       'required' => TRUE,
-      'clear' => array('uid'),
+      'views field' => 'uid',
     );
     return $info;
   }

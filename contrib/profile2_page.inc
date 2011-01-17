@@ -26,7 +26,7 @@ function profile2_page_own($base_path) {
  * Profile view page.
  */
 function profile2_page_view($profile) {
-  drupal_set_title($profile->getType()->label);
+  drupal_set_title($profile->label());
   return $profile->view('page');
 }
 

@@ -63,8 +63,8 @@ class ProfileCRUDTestCase extends DrupalWebTestCase {
     profile2_save($profile);
 
     $profiles = profile2_load_by_user($user1);
-    $this->assertEqual($profiles['test']->label, 'label', 'Created and loaded profile 1.');
-    $this->assertEqual($profiles['test2']->label, 'label2', 'Created and loaded profile 2.');
+    $this->assertEqual($profiles['test']->label(), 'label', 'Created and loaded profile 1.');
+    $this->assertEqual($profiles['test2']->label(), 'label2', 'Created and loaded profile 2.');
 
     // Test looking up from static cache works also.
     $profiles = profile2_load_by_user($user1);

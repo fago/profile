@@ -26,13 +26,13 @@ function profile2_entity_info() {
       'entity keys' => array(
         'id' => 'pid',
         'bundle' => 'type',
-        'label' => 'label',
       ),
       'bundles' => array(),
       'bundle keys' => array(
         'bundle' => 'type',
       ),
-      'uri callback' => 'profile2_uri_callback',
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
       'access callback' => 'profile2_access',
       'module' => 'profile2',
       'metadata controller class' => 'Profile2MetadataController'
@@ -577,21 +577,17 @@ class Profile extends Entity {
     $this->uid = $account->uid;
   }
 
-
   /**
    * Gets the associated profile type object.
    *
    * @return ProfileType
    */
-  public function getType() {
+  public function type() {
     return profile2_get_types($this->type);
   }
 
-  /**
-   * Returns the URI for this profile. May be altered via hook_entity_info().
-   */
-  public function uri() {
-    return entity_uri('profile2', $this);
+  public function defaultLabel() {
+    return isset($this->label) ? $this->label : (isset($this->type) ? $this->type()->label : '');
   }
 
   /**
@@ -610,6 +606,13 @@ class Profile extends Entity {
     return $uri['path'];
   }
 
+  public function defaultUri() {
+    return array(
+      'path' => 'user/' . $this->uid,
+      'options' => array('fragment' => 'profile-' . $this->type),
+    );
+  }
+
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     $content = array();
     // Assume newly create objects are still empty.
@@ -619,19 +622,6 @@ class Profile extends Entity {
     return entity_get_controller($this->entityType)->buildContent($this, $view_mode, $langcode, $content);
   }
 }
-
-/**
- * Default uri callback.
- *
- * @see Profile::uri()
- */
-function profile2_uri_callback($profile) {
-  return array(
-    'path' => 'user/' . $profile->uid,
-    'options' => array('fragment' => 'profile-' . $profile->type),
-  );
-}
-
 
 /**
  * Use a separate class for profile types so we can specify some defaults
