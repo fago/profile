@@ -242,7 +242,7 @@ function profile2_delete_multiple(array $pids) {
 /**
  * Implements hook_user_cancel().
  */
-function profile2_user_cancel(&$edit, $account, $method) {
+function profile2_user_cancel($edit, $account, $method) {
   // Delete all profiles of the user in any case.
   foreach (profile2_load_by_user($account) as $profile) {
     profile2_delete($profile);
