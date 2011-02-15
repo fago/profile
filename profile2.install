@@ -35,7 +35,7 @@ function profile2_schema() {
         'description' => 'Primary Key: Unique profile item ID.',
       ),
       'type' => array(
-        'description' => 'The {profile_type}.type of this node.',
+        'description' => 'The {profile_type}.type of this profile.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
@@ -52,7 +52,7 @@ function profile2_schema() {
     'indexes' => array(
       'uid' => array('uid'),
     ),
-    'foreign keys' => array(    
+    'foreign keys' => array(
       'uid' => array(
         'table' => 'user',
         'columns' => array('uid' => 'uid'),

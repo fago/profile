@@ -184,16 +184,8 @@ function profile2_page_profile2_type_insert(ProfileType $type) {
  * Implements hook_profile2_type_update().
  */
 function profile2_page_profile2_type_update(ProfileType $type) {
+  // Rebuild the cache as use_page might have been changed.
   menu_rebuild();
-}
-
-/**
- * Implements hook_profile2_type_delete().
- */
-function profile2_page_profile2_type_delete(ProfileType $type) {
-  if (!empty($type->data['use_page'])) {
-    menu_rebuild();
-  }
 }
 
 /**
