@@ -562,6 +562,9 @@ class Profile extends Entity {
       $this->setUser($values['user']);
       unset($values['user']);
     }
+    if (isset($values['type']) && is_object($values['type'])) {
+      $values['type'] = $values['type']->type;
+    }
     parent::__construct($values, 'profile2');
   }
 
@@ -574,9 +577,12 @@ class Profile extends Entity {
 
   /**
    * Sets a new user owning this profile.
+   *
+   * @param $account
+   *   The user account object or the user account id (uid).
    */
   public function setUser($account) {
-    $this->uid = $account->uid;
+    $this->uid = is_object($account) ? $account->uid : $account;
   }
 
   /**

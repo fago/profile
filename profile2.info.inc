@@ -24,7 +24,7 @@ class Profile2MetadataController extends EntityDefaultMetadataController {
     $properties['type'] = array(
       'type' => 'profile2_type',
       'getter callback' => 'entity_property_getter_method',
-      'setter callback' => 'entity_property_setter_method',
+      'setter callback' => 'entity_property_verbatim_set',
       'setter permission' => 'administer profiles',
       'required' => TRUE,
       'description' => t('The profile type.'),
