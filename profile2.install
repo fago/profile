@@ -10,16 +10,20 @@
  * Implements hook_install().
  */
 function profile2_install() {
-  // Add an initial profile type.
-  $type = entity_create('profile2_type', array(
-    'type' => 'main',
-    'label' => t('Main profile'),
-    'weight' => 0,
-    'data' => array('registration' => TRUE, 'use_page' => TRUE),
-  ));
-  $type->save();
-  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
-  drupal_set_message(t('A main profile type has been created and assigned to all users. Go to the <a href="!url">Profile types</a> page to add some fields or to configure further profile types.', array('!url' => url('admin/structure/profiles'))));
+  // Add an initial profile type, but only if installed manually. In case the
+  // module is installed via an installation profile, a batch is active and
+  // we skip that.
+  if (!batch_get()) {
+    $type = entity_create('profile2_type', array(
+      'type' => 'main',
+      'label' => t('Main profile'),
+      'weight' => 0,
+      'data' => array('registration' => TRUE, 'use_page' => TRUE),
+    ));
+    $type->save();
+    user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('edit own main profile', 'view own main profile'));
+    drupal_set_message(t('A main profile type has been created and assigned to all users. Go to the <a href="!url">Profile types</a> page to add some fields or to configure further profile types.', array('!url' => url('admin/structure/profiles'))));
+  }
 }
 
 /**
